@@ -1,0 +1,390 @@
+// Waypoints module for Bubbly Maps
+// Author: Linus K. CC BY-NC 4.0.
+
+import { db } from "@/server/db";
+
+export interface WaypointData {
+    name: string;
+    latitude: number;
+    longitude: number;
+    description?: string;
+    amenities?: string[];
+    image?: string;
+    maintainer?: string;
+    addedByUserId: string;
+    region?: string;
+    verified?: boolean;
+    approved?: boolean;
+}
+
+export interface WaypointUpdateData {
+    name?: string;
+    latitude?: number;
+    longitude?: number;
+    description?: string;
+    amenities?: string[];
+    image?: string;
+    maintainer?: string;
+    region?: string;
+    verified?: boolean;
+    approved?: boolean;
+}
+
+export class Waypoints {
+    static async logChange(
+        bubblerId: number,
+        userId: string | null,
+        action: "CREATE" | "UPDATE" | "DELETE",
+        oldData?: any,
+        newData?: any
+    ) {
+        return db.bubblerLog.create({
+            data: {
+                bubblerId,
+                userId,
+                action,
+                oldData: oldData ? JSON.parse(JSON.stringify(oldData)) : undefined,
+                newData: newData ? JSON.parse(JSON.stringify(newData)) : undefined,
+            },
+        });
+    }
+
+    static async fetchLogs(bubblerId: number) {
+        return db.bubblerLog.findMany({
+            where: { bubblerId },
+            orderBy: { createdAt: "desc" },
+            include: {
+                user: {
+                    select: {
+                        id: true,
+                        handle: true,
+                        displayName: true,
+                        image: true,
+                        verified: true,
+                        moderator: true,
+                    },
+                },
+            },
+        });
+    }
+
+    static async get(id: number) {
+        try {
+            const bubbler = await db.bubbler.findUnique({
+                where: { id },
+                include: {
+                    reviews: {
+                        include: {
+                            user: true,
+                        },
+                    },
+                    addedBy: true,
+                },
+            });
+            if (!bubbler) throw new Error("Bubbler not found");
+            return bubbler;
+        } catch (err: unknown) {
+            const errorMessage = err instanceof Error ? err.message : "There was an issue fetching this bubbler";
+            throw new Error(errorMessage);
+        }
+    }
+
+    static async getAll() {
+        return db.bubbler.findMany({
+            select: {
+                latitude: true,
+                longitude: true,
+            },
+        });
+    }
+
+    static async add(data: WaypointData) {
+        const {
+            name,
+            latitude,
+            longitude,
+            description,
+            amenities = [],
+            image,
+            maintainer,
+            addedByUserId,
+            region,
+            verified = false,
+            approved = false,
+        } = data;
+
+        const newBubbler = await db.bubbler.create({
+            data: {
+                name,
+                latitude,
+                longitude,
+                description,
+                amenities,
+                image,
+                maintainer,
+                addedByUserId,
+                region,
+                verified,
+                approved,
+            },
+        });
+
+        await this.logChange(newBubbler.id, addedByUserId, "CREATE", null, newBubbler);
+
+        return newBubbler;
+    }
+
+    static async delete(id: number, userId: string | null = null) {
+        try {
+            const oldBubbler = await this.get(id);
+            const deletedBubbler = await db.bubbler.delete({ where: { id } });
+
+            // Try to log the deletion, but do not fail the whole operation if logging errors occur.
+            try {
+                await this.logChange(id, userId ?? oldBubbler.addedByUserId, "DELETE", oldBubbler, null);
+            } catch (logErr) {
+                // Log the error server-side for later inspection, but continue.
+                // eslint-disable-next-line no-console
+                console.error(`Waypoints.delete: failed to write bubblerLog for id=${id}:`, logErr);
+            }
+
+            return deletedBubbler;
+        } catch (err: unknown) {
+            const errorMessage = err instanceof Error ? err.message : "There was an issue deleting this waypoint";
+            throw new Error(errorMessage);
+        }
+    }
+
+    static async edit(id: number, data: WaypointUpdateData, userId: string | null = null) {
+        const oldBubbler = await this.get(id);
+
+        // Filter out undefined values
+        const filteredData: Partial<WaypointUpdateData> = Object.fromEntries(
+            Object.entries(data).filter(([_, value]) => value !== undefined)
+        ) as Partial<WaypointUpdateData>;
+
+        try {
+            const updatedBubbler = await db.bubbler.update({
+                where: { id },
+                data: filteredData,
+            });
+
+            await this.logChange(
+                id,
+                userId ?? oldBubbler.addedByUserId,
+                "UPDATE",
+                oldBubbler,
+                updatedBubbler
+            );
+
+            return updatedBubbler;
+        } catch (err: unknown) {
+            const errorMessage = err instanceof Error ? err.message : "There was an issue updating this waypoint";
+            throw new Error(errorMessage);
+        }
+    }
+
+
+    static async approve(bubblerId: number) {
+        try {
+            return await db.bubbler.update({
+                where: { id: bubblerId },
+                data: { approved: true },
+            });
+        } catch (err: unknown) {
+            const errorMessage = err instanceof Error ? err.message : "Could not approve bubbler";
+            throw new Error(errorMessage);
+        }
+    }
+
+    static async unapprove(bubblerId: number) {
+        try {
+            return await db.bubbler.update({
+                where: { id: bubblerId },
+                data: { approved: false },
+            });
+        } catch (err: unknown) {
+            const errorMessage = err instanceof Error ? err.message : "Could not unapprove bubbler";
+            throw new Error(errorMessage);
+        }
+    }
+
+    static async verify(bubblerId: number) {
+        try {
+            return await db.bubbler.update({
+                where: { id: bubblerId },
+                data: { verified: true },
+            });
+        } catch (err: unknown) {
+            const errorMessage = err instanceof Error ? err.message : "Could not verify bubbler";
+            throw new Error(errorMessage);
+        }
+    }
+
+    static async unverify(bubblerId: number) {
+        try {
+            return await db.bubbler.update({
+                where: { id: bubblerId },
+                data: { verified: false },
+            });
+        } catch (err: unknown) {
+            const errorMessage = err instanceof Error ? err.message : "Could not unverify bubbler";
+            throw new Error(errorMessage);
+        }
+    }
+
+    static async bulkApprove(ids: number[]) {
+        return db.bubbler.updateMany({
+            where: { id: { in: ids } },
+            data: { approved: true },
+        });
+    }
+
+    static async bulkUnapprove(ids: number[]) {
+        return db.bubbler.updateMany({
+            where: { id: { in: ids } },
+            data: { approved: false },
+        });
+    }
+
+    static async bulkVerify(ids: number[]) {
+        return db.bubbler.updateMany({
+            where: { id: { in: ids } },
+            data: { verified: true },
+        });
+    }
+
+    static async bulkUnverify(ids: number[]) {
+        return db.bubbler.updateMany({
+            where: { id: { in: ids } },
+            data: { verified: false },
+        });
+    }
+
+    static async byId(id: number) {
+        return db.bubbler.findUnique({
+            where: { id },
+            include: {
+                addedBy: {
+                    select: {
+                        id: true,
+                        handle: true,
+                        displayName: true,
+                        image: true,
+                        verified: true,
+                        moderator: true,
+                    },
+                },
+                reviews: {
+                    select: {
+                        id: true,
+                        rating: true,
+                        comment: true,
+                        createdAt: true,
+                        user: {
+                            select: {
+                                id: true,
+                                handle: true,
+                                displayName: true,
+                                image: true,
+                                verified: true,
+                                moderator: true,
+                            },
+                        },
+                    },
+                },
+            },
+        });
+    }
+
+
+    static async byUser(userId: string) {
+        return db.bubbler.findMany({ where: { addedByUserId: userId } });
+    }
+
+    static async byRegion(region: string) {
+        return db.bubbler.findMany({ where: { region } });
+    }
+
+    static async verified() {
+        return db.bubbler.findMany({ where: { verified: true } });
+    }
+
+    static async unverified() {
+        return db.bubbler.findMany({ where: { verified: false } });
+    }
+
+    static async approved() {
+        return db.bubbler.findMany({ where: { approved: true } });
+    }
+
+    static async unapproved() {
+        return db.bubbler.findMany({ where: { approved: false } });
+    }
+
+    static async pendingVerification() {
+        return db.bubbler.findMany({ where: { verified: false }, orderBy: { createdAt: "desc" } });
+    }
+
+    static async pendingApproval() {
+        return db.bubbler.findMany({ where: { approved: false }, orderBy: { createdAt: "desc" } });
+    }
+
+    static async all() {
+        return db.bubbler.findMany({ orderBy: { createdAt: "desc" } });
+    }
+
+    static async search(query: string) {
+        return db.bubbler.findMany({
+            where: {
+                OR: [
+                    { name: { contains: query, mode: "insensitive" } },
+                    { description: { contains: query, mode: "insensitive" } },
+                    { amenities: { has: query } },
+                ],
+            },
+        });
+    }
+
+    static async byAmenity(amenity: string) {
+        return db.bubbler.findMany({ where: { amenities: { has: amenity } } });
+    }
+
+    static async byMaintainer(maintainer: string) {
+        return db.bubbler.findMany({ where: { maintainer } });
+    }
+
+    static async recent(limit: number = 10) {
+        return db.bubbler.findMany({
+            orderBy: { createdAt: "desc" },
+            take: limit,
+            include: {
+                addedBy: {
+                    select: {
+                        id: true,
+                        image: true,
+                        displayName: true,
+                        handle: true,
+                    },
+                },
+                reviews: {
+                    select: {
+                        id: true,
+                        bubblerId: true,
+                        userId: true,
+                        rating: true,
+                        comment: true,
+                        createdAt: true,
+                        updatedAt: true,
+                        user: {
+                            select: {
+                                handle: true,
+                            },
+                        },
+                    },
+                    orderBy: { createdAt: "desc" },
+                },
+            },
+        });
+    }
+}
