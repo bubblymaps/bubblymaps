@@ -3,7 +3,13 @@
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { Map as MaplibreMap } from "maplibre-gl";
 
+import ReactDOM from "react-dom/client";
+import maplibregl from "maplibre-gl";
+
 import MapBox from "@/components/map/loader.map";
+import User from "@/components/user"
+import WaypointPopup from "@/components/map/waypoint-popup";
+
 import { Watermark } from "@/components/map/watermark";
 import { ThemeToggle } from "@/components/map/controls/theme-toggle";
 import { Credit } from "@/components/map/credit";
@@ -11,23 +17,27 @@ import { MapZoom } from "@/components/map/controls/map-zoom";
 import { MapScale } from "@/components/map/controls/map-scale";
 import { SearchBar } from "@/components/map/controls/search-bar";
 
-import User from "@/components/user"
+import { toast } from "sonner";
 
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 
-import { waypointsToGeoJSON } from "@/lib/map/wpToGeoJson";
+import type { Waypoint } from "@/types/waypoints";
 
 export default function MapView() {
   const { theme } = useTheme();
   const router = useRouter();
-  const [mounted, setMounted] = useState(false);
-  const [mapInstance, setMapInstance] = useState<MaplibreMap | null>(null);
   const { data: session } = useSession();
-  const [waypoints, setWaypoints] = useState<any[]>([]);
+
+  const [mounted, setMounted] = useState(false);
+  const [map, setMap] = useState<MaplibreMap | null>(null);
   const [mapCenter, setMapCenter] = useState<[number, number] | null>(null);
+
+  const mapTheme = theme === "dark"
+    ? "https://tiles.linus.id.au/styles/dark/style.json"
+    : "https://tiles.linus.id.au/styles/light/style.json";
 
   useEffect(() => setMounted(true), []);
 
@@ -40,147 +50,174 @@ export default function MapView() {
         } else if (typeof data.longitude === "string" && typeof data.latitude === "string") {
           setMapCenter([parseFloat(data.longitude), parseFloat(data.latitude)]);
         } else {
-          setMapCenter([151.21, -33.87]); // fallback to Sydney
+          setMapCenter([151.21, -33.87]);
         }
       })
       .catch(() => setMapCenter([151.21, -33.87]));
   }, []);
 
   useEffect(() => {
-    fetch("/api/waypoints")
-      .then((res) => res.json())
-      .then((data) => setWaypoints(Array.isArray(data.waypoints) ? data.waypoints : []));
-  }, []);
+    if (!map) return
 
-  useEffect(() => {
-    if (!mapInstance || waypoints.length === 0) return;
+    const loadWaypoints = async () => {
 
-    const geojson = waypointsToGeoJSON(waypoints);
+      console.log("[ Loader ] Loading waypoints...")
+      toast.info("Loading waypoints...")
 
-    // Clean old source/layers
-    if (mapInstance.getLayer("clusters")) mapInstance.removeLayer("clusters");
-    if (mapInstance.getLayer("cluster-count")) mapInstance.removeLayer("cluster-count");
-    if (mapInstance.getLayer("unclustered-point")) mapInstance.removeLayer("unclustered-point");
-    if (mapInstance.getSource("waypoints")) mapInstance.removeSource("waypoints");
+      try {
+        const res = await fetch("/api/waypoints")
 
-    mapInstance.addSource("waypoints", {
-      type: "geojson",
-      data: geojson,
-      cluster: true,
-      clusterMaxZoom: 14,
-      clusterRadius: 50,
-    });
+        if (!res.ok) {
+          toast.error(`${res.status} ${res.statusText}`)
+          throw new Error(`${res.status} ${res.statusText}`)
+        }
 
-    mapInstance.addLayer({
-      id: "clusters",
-      type: "circle",
-      source: "waypoints",
-      filter: ["has", "point_count"],
-      paint: {
-        "circle-color": [
-          "step",
-          ["get", "point_count"],
-          "#60a5fa",
-          10,
-          "#3b82f6",
-          30,
-          "#2563eb",
-          100,
-          "#1e40af",
-        ],
-        "circle-radius": [
-          "step",
-          ["get", "point_count"],
-          18,
-          10,
-          25,
-          30,
-          32,
-          100,
-          40,
-        ],
-        "circle-opacity": 0.85,
-        "circle-stroke-width": 3,
-        "circle-stroke-color": "#ffffff",
-        "circle-stroke-opacity": 0.9,
-      },
-    });
+        const data = await res.json()
 
-    mapInstance.addLayer({
-      id: "cluster-count",
-      type: "symbol",
-      source: "waypoints",
-      filter: ["has", "point_count"],
-      layout: {
-        "text-field": ["get", "point_count_abbreviated"],
-        "text-font": ["Open Sans Semibold", "Arial Unicode MS Bold"],
-        "text-size": 12,
-      },
-      paint: {
-        "text-color": "#ffffff",
-      },
-    });
+        const geojson: GeoJSON.FeatureCollection = {
+          type: "FeatureCollection",
+          features: data.waypoints.map((wp: Waypoint) => ({
+            type: "Feature",
+            geometry: { type: "Point", coordinates: [wp.longitude, wp.latitude] },
+            properties: wp,
+          })),
+        }
+          ;["clusters", "cluster-count", "unclustered-point"].forEach((id) => {
+            if (map.getLayer(id)) map.removeLayer(id)
+          })
 
-    mapInstance.addLayer({
-      id: "unclustered-point",
-      type: "circle",
-      source: "waypoints",
-      filter: ["!", ["has", "point_count"]],
-      paint: {
-        "circle-radius": 7,
-        "circle-color": "#3b82f6",
-        "circle-stroke-width": 2,
-        "circle-stroke-color": "#fff",
-      },
-    });
+        if (map.getSource("waypoints")) map.removeSource("waypoints")
 
-    // Register click & hover handlers ONCE
-    const clickHandler = (e: any) => {
-      const features = mapInstance.queryRenderedFeatures(e.point, {
-        layers: ["clusters"],
-      });
-
-      const feature = features[0];
-      const clusterId = feature?.properties?.cluster_id;
-
-      if (!clusterId) return;
-
-      const source = mapInstance.getSource("waypoints") as maplibregl.GeoJSONSource;
-      if (!source || typeof source.getClusterExpansionZoom !== "function") return;
-
-      source.getClusterExpansionZoom(clusterId as number)
-        .then((zoom: number) => {
-          mapInstance.easeTo({
-            center:
-              feature.geometry.type === "Point"
-                ? (feature.geometry.coordinates as [number, number])
-                : undefined,
-            zoom,
-          });
+        map.addSource("waypoints", {
+          type: "geojson",
+          data: geojson,
+          cluster: true,
+          clusterMaxZoom: 14,
+          clusterRadius: 50,
         })
-    };
 
-    mapInstance.on("click", "clusters", clickHandler);
-    mapInstance.on("mouseenter", "clusters", () => {
-      mapInstance.getCanvas().style.cursor = "pointer";
-    });
-    mapInstance.on("mouseleave", "clusters", () => {
-      mapInstance.getCanvas().style.cursor = "";
-    });
+        map.addLayer({
+          id: "clusters",
+          type: "circle",
+          source: "waypoints",
+          filter: ["has", "point_count"],
+          paint: {
+            "circle-color": ["step", ["get", "point_count"], "#4A90E2", 10, "#357ABD", 50, "#1F4C8B"],
+            "circle-radius": ["step", ["get", "point_count"], 18, 10, 24, 50, 30],
+            "circle-stroke-width": 2,
+            "circle-stroke-color": "#ffffff",
+          },
+        })
+
+        map.addLayer({
+          id: "cluster-count",
+          type: "symbol",
+          source: "waypoints",
+          filter: ["has", "point_count"],
+          layout: {
+            "text-field": "{point_count_abbreviated}",
+            "text-font": ["Arial Unicode MS Bold"],
+            "text-size": 12,
+          },
+          paint: { "text-color": "#ffffff" },
+        })
+
+        map.addLayer({
+          id: "unclustered-point",
+          type: "circle",
+          source: "waypoints",
+          filter: ["!", ["has", "point_count"]],
+          paint: {
+            "circle-color": "#1E90FF",
+            "circle-radius": 8,
+            "circle-stroke-width": 3,
+            "circle-stroke-color": "#ffffff",
+          },
+        })
+
+        const source = map.getSource("waypoints") as maplibregl.GeoJSONSource
+
+        map.on("click", "clusters", (e) => {
+          const features = map.queryRenderedFeatures(e.point, { layers: ["clusters"] })
+          const clusterId = features[0]?.properties.cluster_id
+
+          source
+            .getClusterExpansionZoom(clusterId)
+            .then((zoom: number) => {
+              map.easeTo({
+                center: (features[0]?.geometry as GeoJSON.Point).coordinates as [number, number],
+                zoom,
+                duration: 500,
+              })
+            })
+            .catch((err: Error) => console.error(err))
+        })
+
+        map.on("click", "unclustered-point", (e) => {
+          const features = map.queryRenderedFeatures(e.point, { layers: ["unclustered-point"] });
+          if (!features.length) return;
+
+          const coordinates = (features[0]?.geometry as GeoJSON.Point).coordinates.slice() as [number, number];
+          const properties = features[0]?.properties as Waypoint;
+
+          while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+            coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+          }
+
+          const popup = document.createElement("div");
+          ReactDOM.createRoot(popup).render(
+            <WaypointPopup
+              waypoint={properties}
+              coordinates={coordinates}
+              id={properties.id}
+            />
+          );
+
+          new maplibregl.Popup({ offset: 10 })
+            .setLngLat(coordinates)
+            .setDOMContent(popup)
+            .addTo(map);
+        })
+
+        map.on("mouseenter", "clusters", () => {
+          map.getCanvas().style.cursor = "pointer"
+        })
+
+        map.on("mouseleave", "clusters", () => {
+          map.getCanvas().style.cursor = ""
+        })
+
+        map.on("mouseenter", "unclustered-point", () => {
+          map.getCanvas().style.cursor = "pointer"
+        })
+
+        map.on("mouseleave", "unclustered-point", () => {
+          map.getCanvas().style.cursor = ""
+        })
+
+        console.log("[ Loader ] Waypoints loaded successfully")
+        toast.success("Waypoints loaded successfully")
+
+      } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : "Unknown error";
+        console.error(err)
+        toast.error(`Failed to load waypoints: ${errorMessage}`)
+      }
+    }
+
+    const handleStyleLoad = () => loadWaypoints()
+
+    if (map.isStyleLoaded()) loadWaypoints()
+    else map.once("style.load", handleStyleLoad)
 
     return () => {
-      if (!mapInstance) return;
-      mapInstance.off("click", "clusters", clickHandler);
-    };
-  }, [mapInstance, waypoints]);
+      map.off("style.load", handleStyleLoad)
+    }
+  }, [map, mapTheme])
 
   if (!mounted || !mapCenter) {
     return <div className="w-screen h-screen" />;
   }
-
-  const mapTheme = theme === "dark"
-    ? "https://tiles.linus.id.au/styles/dark/style.json"
-    : "https://tiles.linus.id.au/styles/light/style.json";
 
   return (
     <div className="w-screen h-screen relative">
@@ -190,7 +227,7 @@ export default function MapView() {
         zoom={12}
         showControls={false}
         className="w-full h-full"
-        onMapLoad={setMapInstance}
+        onMapLoad={setMap}
       />
 
       <div className="absolute top-4 right-4 z-30 flex flex-row gap-2 items-center">
@@ -215,8 +252,8 @@ export default function MapView() {
 
       <Watermark />
       <Credit />
-      <MapZoom map={mapInstance} />
-      <MapScale map={mapInstance} />
+      <MapZoom map={map} />
+      <MapScale map={map} />
     </div>
   );
 }

@@ -50,7 +50,7 @@ export function MapScale({ map }: { map: MaplibreMap | null }) {
   return (
     <div className="absolute left-6 bottom-6 z-10 flex items-center select-none">
       <div
-        className="h-2 bg-zinc-300 dark:bg-white rounded transition-all duration-500"
+        className="h-2 bg-zinc-900 dark:bg-white rounded transition-all duration-500"
         style={{ width: `${scale.pixels}px` }}
       />
       <span className="ml-2 text-xs font-medium text-zinc-700 dark:text-zinc-200 transition-opacity duration-500 opacity-100">
