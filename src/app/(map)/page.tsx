@@ -27,8 +27,24 @@ export default function MapView() {
   const [mapInstance, setMapInstance] = useState<MaplibreMap | null>(null);
   const { data: session } = useSession();
   const [waypoints, setWaypoints] = useState<any[]>([]);
+  const [mapCenter, setMapCenter] = useState<[number, number] | null>(null);
 
   useEffect(() => setMounted(true), []);
+
+  useEffect(() => {
+    fetch("https://ipapi.co/json/")
+      .then((res) => res.json())
+      .then((data) => {
+        if (typeof data.longitude === "number" && typeof data.latitude === "number") {
+          setMapCenter([data.longitude, data.latitude]);
+        } else if (typeof data.longitude === "string" && typeof data.latitude === "string") {
+          setMapCenter([parseFloat(data.longitude), parseFloat(data.latitude)]);
+        } else {
+          setMapCenter([151.21, -33.87]); // fallback to Sydney
+        }
+      })
+      .catch(() => setMapCenter([151.21, -33.87]));
+  }, []);
 
   useEffect(() => {
     fetch("/api/waypoints")
@@ -158,7 +174,7 @@ export default function MapView() {
     };
   }, [mapInstance, waypoints]);
 
-  if (!mounted) {
+  if (!mounted || !mapCenter) {
     return <div className="w-screen h-screen" />;
   }
 
@@ -170,7 +186,7 @@ export default function MapView() {
     <div className="w-screen h-screen relative">
       <MapBox
         styleURL={mapTheme}
-        center={[151.21, -33.87]}
+        center={mapCenter}
         zoom={12}
         showControls={false}
         className="w-full h-full"
