@@ -17,6 +17,7 @@ declare module "next-auth" {
       bio: string | null;
       displayName: string | null;
       handle: string | null;
+      moderator: boolean;
       // ...other properties
       // role: UserRole;
     } & DefaultSession["user"];

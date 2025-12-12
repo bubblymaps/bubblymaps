@@ -6,7 +6,7 @@ export function SearchBar() {
   const [value, setValue] = useState("");
   return (
     <form
-      className="group flex items-center rounded-full border border-input shadow-md h-10 w-44 sm:w-75 focus-within:w-100 transition-all duration-300 bg-white dark:bg-zinc-900/80 dark:backdrop-blur-sm dark:text-white px-3 min-w-0 focus-within:ring-2 focus-within:ring-blue-600 focus-within:ring-offset-2 focus-within:ring-offset-white dark:focus-within:ring-offset-zinc-900"
+      className="group flex items-center rounded-full border border-input shadow-md h-10 w-60 max-w-[90vw] sm:w-72 md:w-80 lg:w-96 xl:w-[28rem] transition-all duration-300 bg-white dark:bg-zinc-900/80 dark:backdrop-blur-sm dark:text-white px-3 min-w-0 focus-within:ring-2 focus-within:ring-blue-600 focus-within:ring-offset-2 focus-within:ring-offset-white dark:focus-within:ring-offset-zinc-900"
       onSubmit={e => {
         e.preventDefault();
         console.log("Search:", value);
