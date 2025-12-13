@@ -18,7 +18,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
       <html lang="en" suppressHydrationWarning> 
-        <body className={`${GeistSans.className} pt-20`}> 
+        <body className={GeistSans.className}> 
           <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
             <Toaster position="top-center"/>
             <SessionProvider>{children}</SessionProvider>

@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { MapPin, MessageSquare, Edit3, Calendar } from "lucide-react"
 
 import { Verified } from "@/components/badges/verified"
 import { Moderator } from "@/components/badges/moderator"
@@ -31,10 +32,19 @@ export default async function ProfilePage({ params }: ProfilePageParams) {
         )
     }
 
+    const contributions = await Users.getUserContributions(user.id)
+
+    // Combine all contributions and sort by date
+    const allContributions = [
+        ...contributions.bubblers.map(b => ({ type: 'bubbler' as const, data: b, createdAt: b.createdAt })),
+        ...contributions.reviews.map(r => ({ type: 'review' as const, data: r, createdAt: r.createdAt })),
+        ...contributions.logs.filter(log => log.action !== 'CREATE').map(l => ({ type: 'log' as const, data: l, createdAt: l.createdAt }))
+    ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+
     return (
         <div className="min-h-screen bg-white dark:bg-background">
             <DynamicIsland />
-            <div className="max-w-xl mx-auto px-4 py-10">
+            <div className="max-w-xl mx-auto px-4 py-10 mt-20">
                 <div className="flex flex-col items-center gap-4 mb-8">
                     <div className="w-28 h-28 rounded-full border-4 border-zinc-200 dark:border-zinc-800 shadow-lg overflow-hidden -mb-2">
                         <img src={user.image || ''} alt={user.displayName ?? user.handle ?? ''} className="w-full h-full object-cover" />
@@ -54,7 +64,7 @@ export default async function ProfilePage({ params }: ProfilePageParams) {
                     </div>
                     <div className="flex flex-col items-center">
                         <span className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">{user.createdAt.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>
-                        <span className="text-xs text-zinc-400">Member since</span>
+                        <span className="text-xs text-zinc-400">Joined</span>
                     </div>
                 </div>
 
@@ -83,7 +93,117 @@ export default async function ProfilePage({ params }: ProfilePageParams) {
                     </div>
                 )}
 
+                <div className="mb-8">
+                    <h2 className="text-xs font-semibold text-zinc-400 uppercase mb-4 tracking-wider">Recent Contributions</h2>
+                    
+                    <div className="flex flex-col gap-3">
+                        {allContributions.map((contribution, index) => {
+                            if (contribution.type === 'bubbler') {
+                                const bubbler = contribution.data
+                                return (
+                                    <Link 
+                                        key={`bubbler-${bubbler.id}`}
+                                        href={`/waypoint/${bubbler.id}`}
+                                        className="group flex items-center justify-between p-4 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors"
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center">
+                                                <MapPin className="w-5 h-5 text-blue-500" />
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                                                    {bubbler.name || 'Unnamed Fountain'}
+                                                </span>
+                                                <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                                                    Added bubbler
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <time className="text-xs text-zinc-400">
+                                                {new Date(bubbler.createdAt).toLocaleDateString('en-US', { 
+                                                    month: 'short', 
+                                                    day: 'numeric',
+                                                    year: new Date(bubbler.createdAt).getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined
+                                                })}
+                                            </time>
+                                        </div>
+                                    </Link>
+                                )
+                            } else if (contribution.type === 'review') {
+                                const review = contribution.data
+                                return (
+                                    <Link 
+                                        key={`review-${review.id}`}
+                                        href={`/waypoint/${review.bubbler.id}`}
+                                        className="group flex items-center justify-between p-4 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors"
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center">
+                                                <MessageSquare className="w-5 h-5 text-green-500" />
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                                                    {review.bubbler.name || 'Unnamed Fountain'}
+                                                </span>
+                                                <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                                                    Left a review
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <time className="text-xs text-zinc-400">
+                                                {new Date(review.createdAt).toLocaleDateString('en-US', { 
+                                                    month: 'short', 
+                                                    day: 'numeric',
+                                                    year: new Date(review.createdAt).getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined
+                                                })}
+                                            </time>
+                                        </div>
+                                    </Link>
+                                )
+                            } else {
+                                const log = contribution.data
+                                return (
+                                    <Link 
+                                        key={`log-${log.id}`}
+                                        href={`/waypoint/${log.bubbler.id}`}
+                                        className="group flex items-center justify-between p-4 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors"
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-full bg-amber-500/10 flex items-center justify-center">
+                                                <Edit3 className="w-5 h-5 text-amber-500" />
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                                                    {log.bubbler.name || 'Unnamed Bubbler'}
+                                                </span>
+                                                <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                                                    {log.action === 'UPDATE' ? 'Updated bubbler information' : log.action}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <time className="text-xs text-zinc-400">
+                                                {new Date(log.createdAt).toLocaleDateString('en-US', { 
+                                                    month: 'short', 
+                                                    day: 'numeric',
+                                                    year: new Date(log.createdAt).getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined
+                                                })}
+                                            </time>
+                                        </div>
+                                    </Link>
+                                )
+                            }
+                        })}
 
+                        {allContributions.length === 0 && (
+                            <div className="p-8 text-center text-zinc-400 dark:text-zinc-500">
+                                No contributions yet
+                            </div>
+                        )}
+                    </div>
+                </div>
 
             </div>
         </div>

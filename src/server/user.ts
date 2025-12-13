@@ -227,4 +227,54 @@ export class Users {
       where: { handle },
     });
   }
+
+  static async getUserContributions(userId: string) {
+    try {
+      const [bubblers, reviews, logs] = await Promise.all([
+        db.bubbler.findMany({
+          where: { addedByUserId: userId },
+          orderBy: { createdAt: 'desc' },
+          take: 10,
+        }),
+        db.review.findMany({
+          where: { userId },
+          include: {
+            bubbler: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+          orderBy: { createdAt: 'desc' },
+          take: 10,
+        }),
+        db.bubblerLog.findMany({
+          where: { userId },
+          include: {
+            bubbler: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+          orderBy: { createdAt: 'desc' },
+          take: 10,
+        }),
+      ]);
+
+      return {
+        bubblers,
+        reviews,
+        logs,
+        totalBubblers: bubblers.length,
+        totalReviews: reviews.length,
+        totalEdits: logs.filter(log => log.action === 'update').length,
+      };
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "There was an issue fetching user contributions";
+      throw new Error(errorMessage);
+    }
+  }
 }
