@@ -41,6 +41,8 @@ export default async function ProfilePage({ params }: ProfilePageParams) {
         ...contributions.logs.filter(log => log.action !== 'CREATE').map(l => ({ type: 'log' as const, data: l, createdAt: l.createdAt }))
     ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 
+    const totalContributions = contributions.totalBubblers + contributions.totalReviews + contributions.totalEdits;
+
     return (
         <div className="min-h-screen bg-white dark:bg-background">
             <DynamicIsland />
@@ -61,6 +63,10 @@ export default async function ProfilePage({ params }: ProfilePageParams) {
                     <div className="flex flex-col items-center">
                         <span className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">{user.xp.toLocaleString()}</span>
                         <span className="text-xs text-zinc-400">XP</span>
+                    </div>
+                    <div className="flex flex-col items-center">
+                        <span className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">{totalContributions.toLocaleString()}</span>
+                        <span className="text-xs text-zinc-400">Contributions</span>
                     </div>
                     <div className="flex flex-col items-center">
                         <span className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">{user.createdAt.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>
