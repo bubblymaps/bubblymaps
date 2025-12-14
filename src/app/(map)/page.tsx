@@ -38,7 +38,8 @@ function MapPage() {
   const [mapZoom, setMapZoom] = useState<number>(12);
   const [hasTeleported, setHasTeleported] = useState(false);
 
-  const mapTheme = theme === "dark"
+  // Only set mapTheme after component is mounted to prevent style thrashing
+  const mapTheme = mounted && theme === "dark"
     ? "https://tiles.linus.id.au/styles/dark/style.json"
     : "https://tiles.linus.id.au/styles/light/style.json";
 
@@ -108,6 +109,14 @@ function MapPage() {
       toast.info("Loading waypoints...")
 
       try {
+        // Ensure the style is fully loaded before proceeding
+        if (!map.isStyleLoaded()) {
+          console.log("[ Loader ] Waiting for style to load...")
+          await new Promise<void>((resolve) => {
+            map.once("styledata", () => resolve())
+          })
+        }
+
         const res = await fetch("/api/waypoints")
 
         if (!res.ok) {
@@ -248,10 +257,17 @@ function MapPage() {
       }
     }
 
-    const handleStyleLoad = () => loadWaypoints()
+    const handleStyleLoad = () => {
+      console.log("[ Loader ] Style loaded event fired")
+      loadWaypoints()
+    }
 
-    if (map.isStyleLoaded()) loadWaypoints()
-    else map.once("style.load", handleStyleLoad)
+    // Use 'on' instead of 'once' to handle theme changes
+    map.on("style.load", handleStyleLoad)
+
+    if (map.isStyleLoaded()) {
+      loadWaypoints()
+    }
 
     return () => {
       map.off("style.load", handleStyleLoad)

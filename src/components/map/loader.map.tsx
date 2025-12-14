@@ -49,7 +49,16 @@ export default function MapBox({
 
   useEffect(() => {
     if (mapRef.current && styleURL) {
-      mapRef.current.setStyle(styleURL);
+      // Wait for map to be ready before changing style
+      if (mapRef.current.isStyleLoaded()) {
+        mapRef.current.setStyle(styleURL);
+      } else {
+        mapRef.current.once('load', () => {
+          if (mapRef.current) {
+            mapRef.current.setStyle(styleURL);
+          }
+        });
+      }
     }
   }, [styleURL]);
 
