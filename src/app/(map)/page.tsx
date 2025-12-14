@@ -20,20 +20,23 @@ import { SearchBar } from "@/components/map/controls/search-bar";
 import { toast } from "sonner";
 
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 
 import type { Waypoint } from "@/types/waypoints";
 
-export default function MapView() {
+function MapPage() {
   const { theme } = useTheme();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { data: session } = useSession();
 
   const [mounted, setMounted] = useState(false);
   const [map, setMap] = useState<MaplibreMap | null>(null);
   const [mapCenter, setMapCenter] = useState<[number, number] | null>(null);
+  const [mapZoom, setMapZoom] = useState<number>(12);
+  const [hasTeleported, setHasTeleported] = useState(false);
 
   const mapTheme = theme === "dark"
     ? "https://tiles.linus.id.au/styles/dark/style.json"
@@ -41,20 +44,60 @@ export default function MapView() {
 
   useEffect(() => setMounted(true), []);
 
+  // On mount, check for ?lat, ?lng, ?zoom and teleport if present, else geolocate
   useEffect(() => {
-    fetch("https://ipapi.co/json/")
-      .then((res) => res.json())
-      .then((data) => {
-        if (typeof data.longitude === "number" && typeof data.latitude === "number") {
-          setMapCenter([data.longitude, data.latitude]);
-        } else if (typeof data.longitude === "string" && typeof data.latitude === "string") {
-          setMapCenter([parseFloat(data.longitude), parseFloat(data.latitude)]);
-        } else {
-          setMapCenter([151.21, -33.87]);
-        }
-      })
-      .catch(() => setMapCenter([151.21, -33.87]));
-  }, []);
+    const lat = searchParams.get("lat");
+    const lng = searchParams.get("lng");
+    const zoom = searchParams.get("zoom");
+    if (lat && lng) {
+      const latNum = parseFloat(lat);
+      const lngNum = parseFloat(lng);
+      if (!isNaN(latNum) && !isNaN(lngNum)) {
+        setMapCenter([lngNum, latNum]);
+        setHasTeleported(true);
+      }
+    }
+    if (zoom) {
+      const zoomNum = parseFloat(zoom);
+      if (!isNaN(zoomNum)) setMapZoom(zoomNum);
+    }
+    if (!(lat && lng)) {
+      fetch("https://ipapi.co/json/")
+        .then((res) => res.json())
+        .then((data) => {
+          if (typeof data.longitude === "number" && typeof data.latitude === "number") {
+            setMapCenter([data.longitude, data.latitude]);
+          } else if (typeof data.longitude === "string" && typeof data.latitude === "string") {
+            setMapCenter([parseFloat(data.longitude), parseFloat(data.latitude)]);
+          } else {
+            setMapCenter([151.21, -33.87]);
+          }
+        })
+        .catch(() => setMapCenter([151.21, -33.87]));
+    }
+  }, [searchParams]);
+
+  // Track map movement and update URL
+  useEffect(() => {
+    if (!map) return;
+    const onMove = () => {
+      const center = map.getCenter();
+      const zoom = map.getZoom();
+      const lat = center.lat.toFixed(5);
+      const lng = center.lng.toFixed(5);
+      const zoomStr = zoom.toFixed(2);
+      const params = new URLSearchParams(window.location.search);
+      params.set("lat", lat);
+      params.set("lng", lng);
+      params.set("zoom", zoomStr);
+      const url = `${window.location.pathname}?${params.toString()}`;
+      window.history.replaceState({}, "", url);
+    };
+    map.on("moveend", onMove);
+    return () => {
+      map.off("moveend", onMove);
+    };
+  }, [map]);
 
   useEffect(() => {
     if (!map) return
@@ -224,7 +267,7 @@ export default function MapView() {
       <MapBox
         styleURL={mapTheme}
         center={mapCenter}
-        zoom={12}
+        zoom={mapZoom}
         showControls={false}
         className="w-full h-full"
         onMapLoad={setMap}
@@ -257,3 +300,5 @@ export default function MapView() {
     </div>
   );
 }
+
+export default MapPage;
