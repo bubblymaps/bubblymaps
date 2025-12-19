@@ -6,6 +6,7 @@ import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 
 import { Verified } from "@/components/badges/verified";
+import { Moderator } from "../badges/moderator";
 
 interface WaypointPopupProps {
   name?: string;
@@ -25,6 +26,8 @@ export default function WaypointPopup({ coordinates, id }: WaypointPopupProps) {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [name, setName] = useState<string | undefined>(undefined);
   const [maintainer, setMaintainer] = useState<string | undefined>(undefined);
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [rating, setRating] = useState<number>(0);
 
   useEffect(() => {
     fetch(`/api/waypoints/${id}`)
@@ -42,12 +45,41 @@ export default function WaypointPopup({ coordinates, id }: WaypointPopupProps) {
         setImageUrl(waypoint.image || null);
         setName(waypoint.name || undefined);
         setMaintainer(waypoint.maintainer || undefined);
+        const revs = waypoint.reviews || [];
+        setReviews(revs);
+        if (revs.length) {
+          const sum = revs.reduce((s: number, r: any) => s + (r?.rating || 0), 0);
+          const avg = sum / revs.length;
+          setRating(Number(avg.toFixed(1)));
+        } else {
+          setRating(0);
+        }
+        
       })
       .catch((err) => {
         console.error(err);
         toast.error(`Error: ${err}`);
       })
   }, [id]);
+
+  // Render a single star with a clip for partial fills
+  const Star = ({ fill, index }: { fill: number; index: number }) => {
+    const clipId = `clip-${id}-${index}`;
+    const fillPct = Math.max(0, Math.min(100, fill));
+    return (
+      <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden className="inline-block">
+        <defs>
+          <clipPath id={clipId}>
+            <rect x="0" y="0" width={`${fillPct}%`} height="100%" />
+          </clipPath>
+        </defs>
+        <path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.789 1.402 8.171L12 18.896l-7.336 3.874 1.402-8.171L.132 9.21l8.2-1.192z" fill="#e5e7eb" />
+        <g clipPath={`url(#${clipId})`}>
+          <path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.789 1.402 8.171L12 18.896l-7.336 3.874 1.402-8.171L.132 9.21l8.2-1.192z" fill="#fbbf24" />
+        </g>
+      </svg>
+    );
+  };
 
 
   return (
@@ -68,6 +100,23 @@ export default function WaypointPopup({ coordinates, id }: WaypointPopupProps) {
         <CardTitle className="text-lg font-extrabold tracking-wide text-zinc-800 dark:text-zinc-100 drop-shadow-sm mt-0">
           {name} {verified && <Verified content={`Verified by ${maintainer}.`} />}
         </CardTitle>
+
+        <div className="flex flex-col gap-1 w-full -mt-3 mb-1">
+          {reviews.length > 0 && (
+            <div className="mt-2 flex items-center gap-2">
+              <div className="flex items-center gap-0.5" aria-hidden>
+                  {Array.from({ length: 5 }).map((_, i) => {
+                    const fill = Math.max(0, Math.min(100, (rating - i) * 100));
+                    return <Star key={i} fill={fill} index={i} />;
+                  })}
+                </div>
+
+              <div className="flex items-center">
+                <div className="text-xs text-muted-foreground">({reviews.length})</div>
+              </div>
+            </div>
+          )}
+        </div>
       </CardHeader>
 
       <CardContent className="py-1 text-sm">
@@ -123,6 +172,10 @@ export default function WaypointPopup({ coordinates, id }: WaypointPopupProps) {
 
               {addedBy.verified && (
                 <Verified content={`Official account of a government, organization, or recognized entity.`} />
+              )}
+
+              {addedBy.moderator && (
+                <Moderator />
               )}
             </div>
           </div>
