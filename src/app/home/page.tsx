@@ -8,6 +8,14 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 
+interface Stats {
+  totalWaypoints: number;
+  totalVerifiedWaypoints: number;
+  totalUsers: number;
+  totalReviews: number;
+  totalContributions: number;
+}
+
 interface SearchResult {
   id: number;
   name: string;
@@ -22,6 +30,15 @@ export default function HomePage() {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [debouncedQuery, setDebouncedQuery] = useState('');
+  const [stats, setStats] = useState<Stats | null>(null);
+
+  // Fetch stats
+  useEffect(() => {
+    fetch('/api/stats')
+      .then(res => res.json())
+      .then(data => setStats(data))
+      .catch(err => console.error('Failed to fetch stats', err));
+  }, []);
 
   // Debounce search query
   useEffect(() => {
@@ -82,11 +99,11 @@ export default function HomePage() {
         <div className="max-w-3xl mx-auto space-y-8">
           <div className="space-y-4">
             <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-50">
-              Find fresh water, <br className="hidden md:block" />
+              Find water bubblers, <br className="hidden md:block" />
               <span className="text-blue-600 dark:text-blue-400">anywhere you go.</span>
             </h1>
             <p className="text-lg md:text-xl text-zinc-600 dark:text-zinc-400 max-w-2xl mx-auto">
-              Discover thousands of water bubblers, fountains, and refill stations contributed by our community.
+              Discover thousands of water bubblers, fountains, and refill stations contributed by the community.
             </p>
           </div>
 
@@ -158,6 +175,35 @@ export default function HomePage() {
               </Link>
             </Button>
           </div>
+
+          {stats && (
+            <div className="grid grid-cols-3 gap-4 md:gap-8 w-full max-w-2xl pt-8 mt-4 border-t border-zinc-200/50 dark:border-zinc-800/50">
+              <div className="flex flex-col items-center">
+                <div className="text-2xl md:text-3xl font-bold text-zinc-900 dark:text-zinc-100">
+                  {stats.totalContributions.toLocaleString()}
+                </div>
+                <div className="text-xs md:text-sm font-medium text-zinc-500 dark:text-zinc-400 mt-1">
+                  Contributions
+                </div>
+              </div>
+              <div className="flex flex-col items-center">
+                <div className="text-2xl md:text-3xl font-bold text-zinc-900 dark:text-zinc-100">
+                  {stats.totalVerifiedWaypoints.toLocaleString()}
+                </div>
+                <div className="text-xs md:text-sm font-medium text-zinc-500 dark:text-zinc-400 mt-1">
+                  Verified
+                </div>
+              </div>
+              <div className="flex flex-col items-center">
+                <div className="text-2xl md:text-3xl font-bold text-zinc-900 dark:text-zinc-100">
+                  {stats.totalUsers.toLocaleString()}
+                </div>
+                <div className="text-xs md:text-sm font-medium text-zinc-500 dark:text-zinc-400 mt-1">
+                  Members
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </main>
 
