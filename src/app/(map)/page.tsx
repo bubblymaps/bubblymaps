@@ -106,7 +106,7 @@ function MapPage() {
     const loadWaypoints = async () => {
 
       console.log("[ Loader ] Loading waypoints...")
-      toast.info("Loading waypoints...")
+      toast.loading("Loading waypoints...", { id: "load-waypoints" })
 
       try {
         // Ensure the style is fully loaded before proceeding
@@ -248,12 +248,12 @@ function MapPage() {
         })
 
         console.log("[ Loader ] Waypoints loaded successfully")
-        toast.success("Waypoints loaded successfully")
+        toast.success("Waypoints loaded successfully", { id: "load-waypoints" })
 
       } catch (err: unknown) {
         const errorMessage = err instanceof Error ? err.message : "Unknown error";
         console.error(err)
-        toast.error(`Failed to load waypoints: ${errorMessage}`)
+        toast.error(`Failed to load waypoints: ${errorMessage}`, { id: "load-waypoints" })
       }
     }
 
