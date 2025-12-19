@@ -99,6 +99,26 @@ export class Waypoints {
         });
     }
 
+    static async search(query: string) {
+        return db.bubbler.findMany({
+            where: {
+                OR: [
+                    { name: { contains: query } },
+                    { description: { contains: query } },
+                    { region: { contains: query } },
+                ],
+            },
+            select: {
+                id: true,
+                name: true,
+                latitude: true,
+                longitude: true,
+                region: true,
+            },
+            take: 5,
+        });
+    }
+
     static async add(data: WaypointData) {
         const {
             name,
@@ -333,18 +353,6 @@ export class Waypoints {
 
     static async all() {
         return db.bubbler.findMany({ orderBy: { createdAt: "desc" } });
-    }
-
-    static async search(query: string) {
-        return db.bubbler.findMany({
-            where: {
-                OR: [
-                    { name: { contains: query, mode: "insensitive" } },
-                    { description: { contains: query, mode: "insensitive" } },
-                    { amenities: { has: query } },
-                ],
-            },
-        });
     }
 
     static async byAmenity(amenity: string) {
