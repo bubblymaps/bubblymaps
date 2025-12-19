@@ -156,7 +156,7 @@ function MapPage() {
           paint: {
             "circle-color": ["step", ["get", "point_count"], "#4A90E2", 10, "#357ABD", 50, "#1F4C8B"],
             "circle-radius": ["step", ["get", "point_count"], 18, 10, 24, 50, 30],
-            "circle-stroke-width": 2,
+            "circle-stroke-width": 3,
             "circle-stroke-color": "#ffffff",
           },
         })
