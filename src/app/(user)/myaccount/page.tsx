@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 
 import Loading from "@/components/loading";
 import { signOut } from "next-auth/react";
+import { BackButton } from "@/components/back";
 
 export default function MyAccount() {
     const { data: session, status } = useSession();
@@ -71,19 +72,7 @@ export default function MyAccount() {
 
     return (
         <div className="min-h-screen w-full flex items-center justify-center bg-white dark:bg-background">
-            <div className="absolute top-4 left-4">
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    aria-label="Go back"
-                    onClick={() => router.back()}
-                    className="cursor-pointer rounded-full p-2 text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-                    </svg>
-                </Button>
-            </div>
+            <BackButton />
             <div className="w-full max-w-md mx-auto space-y-8">
                 <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50 mb-6 text-center">Account Settings</h2>
                 <form className="flex flex-col items-center space-y-6 w-full" onSubmit={handleSubmit}>

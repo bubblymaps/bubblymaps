@@ -6,6 +6,7 @@ import { Moderator } from "@/components/badges/moderator"
 import { Button } from "@/components/ui/button"
 
 import { Users } from "@/server/user/user"
+import { BackButton } from "@/components/back"
 
 interface ProfilePageParams {
     params: Promise<{ handle: string }>
@@ -41,10 +42,10 @@ export default async function ProfilePage({ params }: ProfilePageParams) {
     ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 
     const totalContributions = contributions.totalBubblers + contributions.totalReviews + contributions.totalEdits;
-
     return (
         <div className="min-h-screen bg-white dark:bg-background">
-            <div className="max-w-xl mx-auto px-4 py-10 mt-20">
+            <BackButton />
+            <div className="max-w-xl mx-auto px-4 py-10">
                 <div className="flex flex-col items-center gap-4 mb-8">
                     <div className="w-28 h-28 rounded-full border-4 border-zinc-200 dark:border-zinc-800 shadow-lg overflow-hidden -mb-2">
                         <img src={user.image || ''} alt={user.displayName ?? user.handle ?? ''} className="w-full h-full object-cover" />
@@ -99,13 +100,13 @@ export default async function ProfilePage({ params }: ProfilePageParams) {
 
                 <div className="mb-8">
                     <h2 className="text-xs font-semibold text-zinc-400 uppercase mb-4 tracking-wider">Recent Contributions</h2>
-                    
+
                     <div className="flex flex-col gap-3">
                         {allContributions.map((contribution, index) => {
                             if (contribution.type === 'bubbler') {
                                 const bubbler = contribution.data
                                 return (
-                                    <Link 
+                                    <Link
                                         key={`bubbler-${bubbler.id}`}
                                         href={`/waypoint/${bubbler.id}`}
                                         className="group flex items-center justify-between p-4 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors"
@@ -125,8 +126,8 @@ export default async function ProfilePage({ params }: ProfilePageParams) {
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <time className="text-xs text-zinc-400">
-                                                {new Date(bubbler.createdAt).toLocaleDateString('en-US', { 
-                                                    month: 'short', 
+                                                {new Date(bubbler.createdAt).toLocaleDateString('en-US', {
+                                                    month: 'short',
                                                     day: 'numeric',
                                                     year: new Date(bubbler.createdAt).getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined
                                                 })}
@@ -137,7 +138,7 @@ export default async function ProfilePage({ params }: ProfilePageParams) {
                             } else if (contribution.type === 'review') {
                                 const review = contribution.data
                                 return (
-                                    <Link 
+                                    <Link
                                         key={`review-${review.id}`}
                                         href={`/waypoint/${review.bubbler.id}`}
                                         className="group flex items-center justify-between p-4 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors"
@@ -157,8 +158,8 @@ export default async function ProfilePage({ params }: ProfilePageParams) {
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <time className="text-xs text-zinc-400">
-                                                {new Date(review.createdAt).toLocaleDateString('en-US', { 
-                                                    month: 'short', 
+                                                {new Date(review.createdAt).toLocaleDateString('en-US', {
+                                                    month: 'short',
                                                     day: 'numeric',
                                                     year: new Date(review.createdAt).getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined
                                                 })}
@@ -169,7 +170,7 @@ export default async function ProfilePage({ params }: ProfilePageParams) {
                             } else {
                                 const log = contribution.data
                                 return (
-                                    <Link 
+                                    <Link
                                         key={`log-${log.id}`}
                                         href={`/waypoint/${log.bubbler.id}`}
                                         className="group flex items-center justify-between p-4 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors"
@@ -189,8 +190,8 @@ export default async function ProfilePage({ params }: ProfilePageParams) {
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <time className="text-xs text-zinc-400">
-                                                {new Date(log.createdAt).toLocaleDateString('en-US', { 
-                                                    month: 'short', 
+                                                {new Date(log.createdAt).toLocaleDateString('en-US', {
+                                                    month: 'short',
                                                     day: 'numeric',
                                                     year: new Date(log.createdAt).getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined
                                                 })}
