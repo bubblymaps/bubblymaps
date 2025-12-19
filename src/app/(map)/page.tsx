@@ -148,6 +148,8 @@ function MapPage() {
           clusterRadius: 50,
         })
 
+
+
         map.addLayer({
           id: "clusters",
           type: "circle",
@@ -246,6 +248,43 @@ function MapPage() {
         map.on("mouseleave", "unclustered-point", () => {
           map.getCanvas().style.cursor = ""
         })
+
+        if (!map.getSource("waypoints-heatmap")) {
+          map.addSource("waypoints-heatmap", {
+            type: "geojson",
+            data: geojson, // same raw data
+          });
+        }
+
+        if (!map.getLayer("waypoints-heat")) {
+          map.addLayer(
+            {
+              id: "waypoints-heat",
+              type: "heatmap",
+              source: "waypoints-heatmap",
+              maxzoom: 13,
+              paint: {
+                "heatmap-weight": 1,
+                "heatmap-intensity": ["interpolate", ["linear"], ["zoom"], 0, 0.3, 10, 0.7, 15, 1.5],
+                "heatmap-radius": ["interpolate", ["linear"], ["zoom"], 0, 20, 10, 40, 15, 60],
+                "heatmap-color": [
+                  "interpolate",
+                  ["linear"],
+                  ["heatmap-density"],
+                  0, "rgba(0,0,255,0)",
+                  0.1, "rgba(0,60,255,0.15)",
+                  0.3, "rgba(0,100,255,0.3)",
+                  0.5, "rgba(0,150,255,0.5)",
+                  0.7, "rgba(0,200,255,0.7)",
+                  1, "rgba(0,255,255,1)"
+                ],
+                "heatmap-opacity": ["interpolate", ["linear"], ["zoom"], 10, 0.8, 15, 0],
+              },
+            },
+            "clusters"
+          );
+
+        }
 
         console.log("[ Loader ] Waypoints loaded successfully")
         toast.success("Waypoints loaded successfully", { id: "load-waypoints" })
