@@ -234,7 +234,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "D:\\bubbly-maps\\generated\\prisma",
+      "value": "D:\\apps\\bubbly-maps\\generated\\prisma",
       "fromEnvVar": null
     },
     "config": {
@@ -248,7 +248,7 @@ const config = {
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "D:\\bubbly-maps\\prisma\\schema.prisma",
+    "sourceFilePath": "D:\\apps\\bubbly-maps\\prisma\\schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
@@ -262,6 +262,7 @@ const config = {
     "db"
   ],
   "activeProvider": "postgresql",
+  "postinstall": false,
   "inlineDatasources": {
     "db": {
       "url": {

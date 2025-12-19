@@ -1,8 +1,10 @@
+import { BackButton } from "@/components/back"
 import { Button } from "@/components/ui/button"
 
 export default function TermsPage() {
     return (
         <div className="min-h-screen bg-background">
+            <BackButton />
             <div className="container mx-auto px-4 py-12 max-w-4xl">
                 <div className="flex flex-col items-center gap-6 mb-12">
                     <h1 className="text-4xl font-bold text-center">Terms of Service</h1>
