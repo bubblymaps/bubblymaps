@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { Waypoints } from "@/server/waypoints";
+import { Waypoints } from "@/server/waypoints/waypoints";
 
 export async function GET(req: Request,
   context: { params: Promise<{ id: string }> }

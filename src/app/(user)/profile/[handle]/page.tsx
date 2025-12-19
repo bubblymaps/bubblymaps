@@ -4,9 +4,8 @@ import { MapPin, MessageSquare, Edit3, Calendar } from "lucide-react"
 import { Verified } from "@/components/badges/verified"
 import { Moderator } from "@/components/badges/moderator"
 import { Button } from "@/components/ui/button"
-import { DynamicIsland } from "@/components/dynamic-island"
 
-import { Users } from "@/server/user"
+import { Users } from "@/server/user/user"
 
 interface ProfilePageParams {
     params: Promise<{ handle: string }>
@@ -45,7 +44,6 @@ export default async function ProfilePage({ params }: ProfilePageParams) {
 
     return (
         <div className="min-h-screen bg-white dark:bg-background">
-            <DynamicIsland />
             <div className="max-w-xl mx-auto px-4 py-10 mt-20">
                 <div className="flex flex-col items-center gap-4 mb-8">
                     <div className="w-28 h-28 rounded-full border-4 border-zinc-200 dark:border-zinc-800 shadow-lg overflow-hidden -mb-2">

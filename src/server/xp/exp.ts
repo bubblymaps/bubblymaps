@@ -1,6 +1,6 @@
 import { db } from "@/server/db";
-import { XP_REWARDS, XP_REQUIRED } from "./xp-config";
-import type { XPAction } from "./xp-config";
+import { XP_REWARDS, XP_REQUIRED } from "@/server/xp/config";
+import type { XPAction } from "@/server/xp/config";
 
 /**
  * Award XP to a user for completing an action

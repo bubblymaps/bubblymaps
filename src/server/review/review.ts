@@ -1,0 +1,101 @@
+import { db } from "@/server/db";
+
+export interface ReviewData {
+  bubblerId: number;
+  userId: string;
+  rating: number;
+  comment?: string;
+}
+
+export class Reviews {
+  static async add(data: ReviewData) {
+    const { bubblerId, userId, rating, comment } = data;
+
+    try {
+      const newReview = await db.review.create({
+        data: {
+          bubblerId,
+          userId,
+          rating,
+          comment,
+        },
+      });
+      return newReview;
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "There was an issue adding this review";
+      throw new Error(errorMessage);
+    }
+  }
+
+  static async all() {
+    try {
+      const reviews = await db.review.findMany({
+        include: {
+          user: { select: { id: true, displayName: true, handle: true, moderator: true, verified: true, image: true } },
+          bubbler: { select: { id: true, name: true } },
+        },
+        orderBy: { createdAt: "desc" },
+      });
+      return reviews;
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "There was an issue fetching reviews";
+      throw new Error(errorMessage);
+    }
+  }
+
+  static async delete(id: number) {
+    try {
+      const deletedReview = await db.review.delete({
+        where: { id },
+      });
+      return deletedReview;
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "There was an issue deleting this review";
+      throw new Error(errorMessage);
+    }
+  }
+
+  static async byBubbler(bubblerId: number) {
+    try {
+      const reviews = await db.review.findMany({
+        where: { bubblerId },
+        include: {
+          user: { select: { id: true, displayName: true, handle: true, moderator: true, verified: true, image: true } },
+        },
+        orderBy: { createdAt: "desc" },
+      });
+      return reviews;
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "There was an issue fetching reviews";
+      throw new Error(errorMessage);
+    }
+  }
+
+  static async byUser(userId: string) {
+    try {
+      const reviews = await db.review.findMany({
+        where: { userId },
+        include: {
+          bubbler: { select: { id: true, name: true } },
+        },
+        orderBy: { createdAt: "desc" },
+      });
+      return reviews;
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "There was an issue fetching user reviews";
+      throw new Error(errorMessage);
+    }
+  }
+
+  static async getId(id: number) {
+    try {
+      const review = await db.review.findUnique({
+        where: { id },
+      });
+      return review;
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to fetch review";
+      throw new Error(errorMessage);
+    }
+  }
+}

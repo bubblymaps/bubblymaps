@@ -1,8 +1,8 @@
-import { Waypoints, type WaypointData } from "@/server/waypoints";
+import { Waypoints, type WaypointData } from "@/server/waypoints/waypoints";
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/server/auth";
-import { awardXP, canCreateWaypoint } from "@/server/xp";
-import { XP_REQUIRED } from "@/server/xp-config";
+import { awardXP, canCreateWaypoint } from "@/server/xp/exp";
+import { XP_REQUIRED } from "@/server/xp/config";
 
 /**
  * GET /api/waypoints

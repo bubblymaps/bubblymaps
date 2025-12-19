@@ -10,7 +10,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/server/auth";
-import { Users } from "@/server/user";
+import { Users } from "@/server/user/user";
 
 export async function POST(request: NextRequest) {
     const session = await auth();

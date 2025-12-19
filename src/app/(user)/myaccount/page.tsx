@@ -7,8 +7,6 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
-import { DynamicIsland } from "@/components/dynamic-island";
-
 import Loading from "@/components/loading";
 import { signOut } from "next-auth/react";
 
@@ -73,7 +71,6 @@ export default function MyAccount() {
 
     return (
         <div className="min-h-screen w-full flex items-center justify-center bg-white dark:bg-background">
-            <DynamicIsland />
             <div className="absolute top-4 left-4">
                 <Button
                     variant="ghost"
