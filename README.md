@@ -2,7 +2,7 @@
 
 A maps app for locating public water fountains locations. Access it [here](https://bubblymaps.org)!
 
-# Self host (v4 beta)
+# Self host (v5 beta)
 
 ### Prerequisites
 
