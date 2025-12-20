@@ -1,0 +1,30 @@
+version: '3.9'
+
+services:
+  bubblymaps:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      # AUTH
+      - DATABASE_URL=postgresql://user:pass@host:port/dbname
+      - AUTH_SECRET=secret
+      - AUTH_GOOGLE_ID=googid
+      - AUTH_GOOGLE_SECRET=googsecret
+      - AUTH_TRUST_HOST=http://localhost:3000
+      - AUTH_RESEND_KEY="secret"
+      # MINIO
+      - MINIO_URL=url
+      - MINIO_BUCKET=bubblymaps
+      - MINIO_USER=user
+      - MINIO_PASS=pass
+      # BUBBLY MAPS API
+      - APP_URL=http://localhost:3000
+      - API_TOKEN="secret"
+      # LOGGING
+      - DISCORD_WEBHOOK_URL=url
+      # DEBUG
+      - APP_VERSION=v5.0.0
+      - API_VERSION=v5
