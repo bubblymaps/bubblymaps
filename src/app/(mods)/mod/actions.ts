@@ -278,3 +278,39 @@ export async function getRecentContributions() {
     }
   });
 }
+
+export async function getLogs(page = 1, pageSize = 20, search = '') {
+  await checkMod();
+  const skip = (page - 1) * pageSize;
+  const where = search ? {
+    OR: [
+      { action: { contains: search, mode: 'insensitive' as const } },
+      { user: { name: { contains: search, mode: 'insensitive' as const } } },
+      { bubbler: { name: { contains: search, mode: 'insensitive' as const } } },
+    ]
+  } : {};
+
+  const [data, total] = await Promise.all([
+    db.bubblerLog.findMany({ 
+      where,
+      orderBy: { createdAt: 'desc' },
+      include: {
+        user: { select: { name: true, email: true } },
+        bubbler: { select: { name: true } }
+      },
+      skip,
+      take: pageSize
+    }),
+    db.bubblerLog.count({ where })
+  ]);
+  
+  return {
+    data,
+    metadata: {
+      total,
+      page,
+      pageSize,
+      totalPages: Math.ceil(total / pageSize)
+    }
+  };
+}

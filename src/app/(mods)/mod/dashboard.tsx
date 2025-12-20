@@ -26,7 +26,8 @@ import {
   getUsers, updateUser, deleteUser, createUser,
   getReviews, deleteReview,
   getReports, resolveReport,
-  getStats, getRecentContributions
+  getStats, getRecentContributions,
+  getLogs
 } from './actions';
 
 export default function Dashboard({ user }: { user: any }) {
@@ -46,12 +47,14 @@ export default function Dashboard({ user }: { user: any }) {
           <TabsTrigger value="users">Users</TabsTrigger>
           <TabsTrigger value="reviews">Reviews</TabsTrigger>
           <TabsTrigger value="reports">Reports</TabsTrigger>
+          <TabsTrigger value="logs">Logs</TabsTrigger>
         </TabsList>
         <TabsContent value="overview"><OverviewTab /></TabsContent>
         <TabsContent value="bubblers"><BubblersTab /></TabsContent>
         <TabsContent value="users"><UsersTab /></TabsContent>
         <TabsContent value="reviews"><ReviewsTab /></TabsContent>
         <TabsContent value="reports"><ReportsTab /></TabsContent>
+        <TabsContent value="logs"><LogsTab /></TabsContent>
       </Tabs>
     </div>
   );
@@ -659,5 +662,122 @@ function PageInput({ page, totalPages, onPageChange }: { page: number, totalPage
       onKeyDown={(e) => e.key === 'Enter' && handleCommit()}
       className="w-12 text-center bg-transparent border-none focus:ring-0 p-0"
     />
+  );
+}
+
+function LogsTab() {
+  const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [search, setSearch] = useState('');
+
+  const load = async () => {
+    setLoading(true);
+    try {
+      const res = await getLogs(page, 20, search);
+      setData(res.data);
+      setTotalPages(res.metadata.totalPages);
+    } catch (e) {
+      toast.error('Failed to load logs');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { load(); }, [page, search]);
+
+  return (
+    <div>
+      <div className="flex justify-between mb-4 gap-4">
+        <Input 
+          placeholder="Search logs..." 
+          value={search} 
+          onChange={(e) => setSearch(e.target.value)} 
+          className="max-w-sm"
+        />
+        <Button onClick={load} variant="outline" size="sm"><RefreshCw className="mr-2 h-4 w-4" /> Refresh</Button>
+      </div>
+      
+      {loading ? <Loader2 className="animate-spin" /> : (
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>ID</TableHead>
+                <TableHead>Action</TableHead>
+                <TableHead>Bubbler</TableHead>
+                <TableHead>User</TableHead>
+                <TableHead>Time</TableHead>
+                <TableHead>Details</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {data.map((item) => (
+                <TableRow key={item.id}>
+                  <TableCell>{item.id}</TableCell>
+                  <TableCell className="capitalize">{item.action}</TableCell>
+                  <TableCell>{item.bubbler?.name || item.bubblerId}</TableCell>
+                  <TableCell>{item.user?.name || item.userId || 'System'}</TableCell>
+                  <TableCell>{new Date(item.createdAt).toLocaleString()}</TableCell>
+                  <TableCell>
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="ghost" size="sm">View Details</Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+                        <DialogHeader>
+                          <DialogTitle>Log Details #{item.id}</DialogTitle>
+                        </DialogHeader>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <h3 className="font-bold mb-2">Old Data</h3>
+                            <pre className="bg-muted p-2 rounded text-xs overflow-auto max-h-[300px]">
+                              {JSON.stringify(item.oldData, null, 2)}
+                            </pre>
+                          </div>
+                          <div>
+                            <h3 className="font-bold mb-2">New Data</h3>
+                            <pre className="bg-muted p-2 rounded text-xs overflow-auto max-h-[300px]">
+                              {JSON.stringify(item.newData, null, 2)}
+                            </pre>
+                          </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
+
+      {!loading && totalPages > 1 && (
+        <div className="mt-4">
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious 
+                  onClick={() => setPage(p => Math.max(1, p - 1))} 
+                  className={page === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                />
+              </PaginationItem>
+              <PaginationItem>
+                <PaginationLink isActive>
+                  <PageInput page={page} totalPages={totalPages} onPageChange={setPage} />
+                </PaginationLink>
+              </PaginationItem>
+              <PaginationItem>
+                <PaginationNext 
+                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                  className={page === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
+      )}
+    </div>
   );
 }
