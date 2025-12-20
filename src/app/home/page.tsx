@@ -3,10 +3,13 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Search, MapPin, Droplets, ArrowRight, Loader2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Search, MapPin, ArrowRight, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Footer } from '@/components/footer';
+import Header from '@/components/header';
 
 interface Stats {
   totalWaypoints: number;
@@ -31,6 +34,15 @@ export default function HomePage() {
   const [loading, setLoading] = useState(false);
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [stats, setStats] = useState<Stats | null>(null);
+  const [wordIndex, setWordIndex] = useState(0);
+  const words = ["water bubblers", "fountains", "refill stations"];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setWordIndex((prev) => (prev + 1) % words.length);
+    }, 2000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Fetch stats
   useEffect(() => {
@@ -80,26 +92,27 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-background dark:bg-background flex flex-col">
       {/* Navigation */}
-      <header className="relative z-10 p-4 md:p-6 flex items-center justify-between">
-        <div className="flex items-center gap-2 font-bold text-xl text-blue-600 dark:text-blue-400">
-          
-        </div>
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" asChild>
-            <Link href="/login">Sign In</Link>
-          </Button>
-          <Button asChild>
-            <Link href="/">Open Map</Link>
-          </Button>
-        </div>
-      </header>
+      <Header />
 
       {/* Hero Section */}
       <main className="flex-1 flex flex-col items-center justify-center px-4 text-center -mt-20">
         <div className="max-w-3xl mx-auto space-y-8">
           <div className="space-y-4">
             <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-50">
-              Find water bubblers, <br className="hidden md:block" />
+              Find{' '}
+              <AnimatePresence mode="wait">
+                <motion.span
+                  key={words[wordIndex]}
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  exit={{ y: -20, opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="inline-block"
+                >
+                  {words[wordIndex]}
+                </motion.span>
+              </AnimatePresence>
+              , <br className="hidden md:block" />
               <span className="text-blue-600 dark:text-blue-400">anywhere you go.</span>
             </h1>
             <p className="text-lg md:text-xl text-zinc-600 dark:text-zinc-400 max-w-2xl mx-auto">
@@ -112,7 +125,7 @@ export default function HomePage() {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400" />
               <Input 
-                className="pl-10 h-12 text-lg bg-white dark:bg-zinc-800 shadow-lg border-zinc-200 dark:border-zinc-700 rounded-full"
+                className="pl-10 h-12 text-lg bg-white dark:bg-zinc-800 shadow-lg border-zinc-200 dark:border-zinc-700 rounded-full focus-visible:border-blue-600 dark:focus-visible:border-blue-400 focus-visible:ring-blue-600 dark:focus-visible:ring-blue-400"
                 placeholder="Search by name, region, or description..."
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
@@ -131,12 +144,12 @@ export default function HomePage() {
                       <button
                         key={result.id}
                         onClick={() => handleSelect(result)}
-                        className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors text-left"
+                        className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors text-left cursor-pointer"
                       >
-                        <div className="bg-blue-100 dark:bg-blue-900/30 p-2 rounded-full shrink-0">
+                        <div className="bg-blue-100 dark:bg-blue-900/30 p-2 rounded-full shrink-0 cursor-pointer">
                           <MapPin className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                         </div>
-                        <div>
+                        <div className="cursor-pointer">
                           <div className="font-medium text-zinc-900 dark:text-zinc-100">
                             {result.name}
                           </div>
@@ -191,7 +204,7 @@ export default function HomePage() {
                   {stats.totalVerifiedWaypoints.toLocaleString()}
                 </div>
                 <div className="text-xs md:text-sm font-medium text-zinc-500 dark:text-zinc-400 mt-1">
-                  Verified
+                  Verified Fountains
                 </div>
               </div>
               <div className="flex flex-col items-center">
@@ -199,7 +212,7 @@ export default function HomePage() {
                   {stats.totalUsers.toLocaleString()}
                 </div>
                 <div className="text-xs md:text-sm font-medium text-zinc-500 dark:text-zinc-400 mt-1">
-                  Members
+                  Users
                 </div>
               </div>
             </div>
@@ -208,9 +221,7 @@ export default function HomePage() {
       </main>
 
       {/* Footer */}
-      <footer className="py-6 text-center text-sm text-zinc-500 dark:text-zinc-400">
-        <p>© {new Date().getFullYear()} Linus Kang. CC BY-NC 4.0.</p>
-      </footer>
+      <Footer />
     </div>
   );
 }
