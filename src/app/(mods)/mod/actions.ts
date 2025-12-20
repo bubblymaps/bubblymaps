@@ -89,6 +89,16 @@ export async function updateBubbler(id: number, data: any) {
   
   const result = await db.bubbler.update({ where: { id }, data: updateData });
   
+  await db.bubblerLog.create({
+    data: {
+      bubblerId: id,
+      userId: user.id,
+      action: 'update',
+      oldData: oldData as any,
+      newData: result as any
+    }
+  });
+
   const diff = getDiff(oldData, result);
   await logToDiscord('Update Bubbler', `Updated bubbler ${id} (${result.name})\nChanges:\n${diff}`, user);
   
@@ -114,6 +124,16 @@ export async function createBubbler(data: any) {
       longitude: parseFloat(data.longitude)
     } 
   });
+
+  await db.bubblerLog.create({
+    data: {
+      bubblerId: result.id,
+      userId: user.id,
+      action: 'create',
+      newData: result as any
+    }
+  });
+
   await logToDiscord('Create Bubbler', `Created bubbler ${result.id} (${result.name})`, user);
   revalidatePath('/mod');
   return result;
