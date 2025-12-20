@@ -1,8 +1,8 @@
 # Bubbly Maps
 
-A maps app for locating public water fountains locations. Access it [here](https://bubblymaps.org)!
+A maps app for locating public water fountains locations. Access the official website [here](https://bubblymaps.org)!
 
-# Self host (v5 beta)
+## Self hosting
 
 ### Prerequisites
 
@@ -21,12 +21,18 @@ cd maps
 docker compose build
 ```
 
-2. Edit `docker-compose.yml` with your environment variables
+2. Edit `docker-compose.yml` with your environment variables.
 3. Start using docker:
 
 ```bash
 docker compose up -d
 ```
+
+Access your instance at ``http://localhost:3000``.
+
+## Docs
+
+See https://docs.bubblymaps.org for API references.
 
 ## Security
 
