@@ -3,59 +3,80 @@
 import { useEffect, useState } from "react";
 import type { Map as MaplibreMap } from "maplibre-gl";
 
-function getScale(map: MaplibreMap | null): { meters: number; label: string; pixels: number } {
-  if (!map) return { meters: 0, label: "", pixels: 0 };
-  // Calculate scale at bottom center of map
+function getScale(map: MaplibreMap | null): { label: string; pixels: number } {
+  if (!map) return { label: "", pixels: 0 };
+  
+  // Calculate meters per pixel at the center
   const center = map.getCenter();
   const zoom = map.getZoom();
-  // Approximate meters per pixel at equator
+  // Meters per pixel at this latitude
   const metersPerPixel = 156543.03392 * Math.cos(center.lat * Math.PI / 180) / Math.pow(2, zoom);
-  // Choose a nice round scale bar length in pixels
-  const pixelLengths = [100, 150, 200, 250, 300];
-  let best: number = pixelLengths[0] ?? 100;
-  let meters = metersPerPixel * best;
-  for (let px of pixelLengths) {
-    const m = metersPerPixel * px;
-    if (m > 1000) {
-      best = px;
-      meters = m;
-      break;
-    }
-    if (m > 100) {
-      best = px;
-      meters = m;
-    }
+  
+  // The distance steps we want to support
+  const steps = [
+    1, 2, 5, 10, 20, 50, 100, 200, 500, 
+    1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000, 500000, 1000000
+  ];
+
+  // We want a bar width around 80-100px
+  const targetMeters = metersPerPixel * 100;
+  
+  // Find closest nice number
+  let bestStep = steps[0];
+  for (const s of steps) {
+    if (s > targetMeters) break;
+    bestStep = s;
   }
-  let label = meters >= 1000 ? `${(meters/1000).toFixed(1)} km` : `${Math.round(meters)} m`;
-  return { meters, label, pixels: best };
+
+  // Ensure bestStep is always a number
+  bestStep = bestStep ?? steps[0];
+
+  const pixels = bestStep ? bestStep / metersPerPixel : 0;
+  const label = bestStep ? (bestStep >= 1000 ? `${bestStep / 1000} km` : `${bestStep} m`) : "";
+
+  return { label, pixels };
 }
 
 export function MapScale({ map }: { map: MaplibreMap | null }) {
-  const [scale, setScale] = useState<{ meters: number; label: string; pixels?: number }>({ meters: 0, label: "" });
+  const [scale, setScale] = useState<{ label: string; pixels: number }>({ label: "", pixels: 0 });
 
   useEffect(() => {
     if (!map) return;
-    const update = () => setScale(getScale(map));
+
+    let frameId: number;
+    const update = () => {
+      setScale(getScale(map));
+    };
+
+    const onMove = () => {
+      if (frameId) cancelAnimationFrame(frameId);
+      frameId = requestAnimationFrame(update);
+    };
+
     update();
-    map.on("move", update);
-    map.on("zoom", update);
+    map.on("move", onMove);
+    map.on("zoom", onMove);
+    
     return () => {
-      map.off("move", update);
-      map.off("zoom", update);
+      map.off("move", onMove);
+      map.off("zoom", onMove);
+      if (frameId) cancelAnimationFrame(frameId);
     };
   }, [map]);
 
   if (!scale.label || !scale.pixels) return null;
 
   return (
-    <div className="absolute left-6 bottom-6 z-10 flex items-center select-none">
-      <div
-        className="h-2 bg-zinc-900 dark:bg-white rounded transition-all duration-500"
-        style={{ width: `${scale.pixels}px` }}
-      />
-      <span className="ml-2 text-xs font-medium text-zinc-700 dark:text-zinc-200 transition-opacity duration-500 opacity-100">
-        {scale.label}
-      </span>
+    <div className="absolute left-4 bottom-4 z-10 flex flex-col items-start select-none pointer-events-none pb-[env(safe-area-inset-bottom)]">
+      <div className="flex items-center gap-2">
+        <div
+          className="h-2 border-2 border-t-0 border-zinc-900 dark:border-white transition-all duration-200"
+          style={{ width: `${scale.pixels}px` }}
+        />
+        <span className="text-xs font-medium text-zinc-900 dark:text-white whitespace-nowrap shadow-sm">
+          {scale.label}
+        </span>
+      </div>
     </div>
   );
 }

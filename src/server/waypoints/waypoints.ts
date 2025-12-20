@@ -93,6 +93,7 @@ export class Waypoints {
         return db.bubbler.findMany({
             select: {
                 id: true,
+                name: true,
                 latitude: true,
                 longitude: true,
             },

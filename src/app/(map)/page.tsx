@@ -37,6 +37,8 @@ function MapPage() {
   const [mapCenter, setMapCenter] = useState<[number, number] | null>(null);
   const [mapZoom, setMapZoom] = useState<number>(12);
   const [hasTeleported, setHasTeleported] = useState(false);
+  const [waypoints, setWaypoints] = useState<Waypoint[]>([]);
+  const [activePopup, setActivePopup] = useState<maplibregl.Popup | null>(null);
 
   // Only set mapTheme after component is mounted to prevent style thrashing
   const mapTheme = mounted && theme === "dark"
@@ -125,6 +127,8 @@ function MapPage() {
         }
 
         const data = await res.json()
+        console.log(`[MapPage] Loaded ${data.waypoints?.length} waypoints`);
+        setWaypoints(data.waypoints || []);
 
         const geojson: GeoJSON.FeatureCollection = {
           type: "FeatureCollection",
@@ -314,11 +318,11 @@ function MapPage() {
   }, [map, mapTheme])
 
   if (!mounted || !mapCenter) {
-    return <div className="w-screen h-screen" />;
+    return <div className="w-screen h-[100dvh]" />;
   }
 
   return (
-    <div className="w-screen h-screen relative">
+    <div className="w-screen h-[100dvh] relative">
       <MapBox
         styleURL={mapTheme}
         center={mapCenter}
@@ -345,7 +349,42 @@ function MapPage() {
       </div>
 
       <div className="absolute top-4 left-4 z-20">
-        <SearchBar />
+        <SearchBar 
+          waypoints={waypoints}
+          onSelect={(waypoint) => {
+            if (map) {
+              // Close existing popup before opening new one
+              if (activePopup) {
+                activePopup.remove();
+              }
+
+              map.flyTo({
+                center: [waypoint.longitude, waypoint.latitude],
+                zoom: 18,
+                essential: true
+              });
+
+              const popupElement = document.createElement("div");
+              ReactDOM.createRoot(popupElement).render(
+                <WaypointPopup
+                  waypoint={waypoint}
+                  coordinates={[waypoint.longitude, waypoint.latitude]}
+                  id={waypoint.id}
+                />
+              );
+
+              const newPopup = new maplibregl.Popup({ offset: 10 })
+                .setLngLat([waypoint.longitude, waypoint.latitude])
+                .setDOMContent(popupElement)
+                .addTo(map);
+
+              setActivePopup(newPopup);
+
+              // Clear reference when popup is closed manually
+              newPopup.on('close', () => setActivePopup(null));
+            }
+          }}
+        />
       </div>
 
       <Watermark />
