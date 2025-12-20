@@ -34,6 +34,9 @@ export default function User() {
             <DropdownMenuItem className="cursor-pointer" onClick={() => router.push("/profile/" + (session?.user?.name || "user"))}>My Profile</DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem className="cursor-pointer" onClick={() => router.push("/myaccount")}>My Account</DropdownMenuItem>
+            { session?.user.moderator && (
+              <DropdownMenuItem className="cursor-pointer" onClick={() => router.push("/mod")}>Mod Panel</DropdownMenuItem>
+            )}
             <AlertDialog open={open} onOpenChange={setOpen}>
               <AlertDialogTrigger asChild>
                 <DropdownMenuItem className="cursor-pointer" onSelect={e => e.preventDefault()}>Logout</DropdownMenuItem>
