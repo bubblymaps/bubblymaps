@@ -1,0 +1,66 @@
+name: CI - Pull Request Checks
+
+on:
+  pull_request:
+    branches:
+      - stable
+      - v5
+
+jobs:
+  ci-checks:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: read
+    
+    steps:
+      # Step 1: Checkout code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      # Step 2: Setup Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      
+      # Step 3: Install dependencies
+      - name: Install dependencies
+        run: |
+          echo "Installing dependencies..."
+          npm i
+      
+      # Step 4: Run tests
+      - name: Run tests
+        run: |
+          echo "Running tests..."
+          npm run tests
+      
+      # Step 5: Build application
+      - name: Build application
+        env:
+            NODE_ENV: production
+            AUTH_RESEND_KEY: example
+            DATABASE_URL: postgresql://user:pass@host:5432/database?schema=public
+            AUTH_SECRET: example
+            AUTH_GOOGLE_ID: example
+            AUTH_GOOGLE_SECRET: example
+            AUTH_TRUST_HOST: http://localhost:3000
+            MINIO_URL: http://localhost:9000
+            MINIO_BUCKET: bubblymaps
+            MINIO_USER: minioadmin
+            MINIO_PASS: minioadmin
+            APP_VERSION: v5.0.0
+            API_VERSION: v5
+            APP_URL: http://localhost:3000
+            API_TOKEN: example
+
+        run: |
+          echo "Building application..."
+          npm run build
+      
+      # Step 6: CI checks completed
+      - name: CI checks completed
+        run: |
+          echo "All CI checks passed successfully!"
+          echo "This PR is ready for review and merge."
