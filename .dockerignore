@@ -23,3 +23,5 @@ bun.lockb
 .DS_Store
 *.tsbuildinfo
 next-env.d.ts
+
+prisma.config.ts
