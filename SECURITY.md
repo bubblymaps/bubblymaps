@@ -1,7 +1,7 @@
 # Reporting a Vulnerability
 
 If you discover a security issue in Bubbly Maps, please **do not open a public issue**.  
-Instead, contact us privately [here](mailto://security@bubblymaps.org).
+Instead, contact us privately at [security@bubblymaps.org](mailto://security@bubblymaps.org).
 
 In your report, please include:  
 - A description of the vulnerability
