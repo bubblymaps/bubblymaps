@@ -1,10 +1,13 @@
 {
   "name": "bubblymaps",
-  "version": "5.0.0",
+  "version": "5.0.1",
   "private": true,
   "type": "module",
   "author": "linuskang",
   "license": "CC BY-NC 4.0",
+  "prisma": {
+    "schema": "src/prisma/schema.prisma"
+  },
   "scripts": {
     "build": "next build",
     "check": "next lint && tsc --noEmit",
