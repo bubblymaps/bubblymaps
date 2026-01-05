@@ -1,30 +1,83 @@
-version: '3.9'
+version: "3.9"
 
 services:
+  # BUBBLY MAPS @ 10.0.0.141:2000
   bubblymaps:
     build:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "3000:3000"
+      - "2000:3000"
     environment:
       # AUTH
-      - DATABASE_URL=postgresql://user:pass@host:port/dbname
-      - AUTH_SECRET=secret
-      - AUTH_GOOGLE_ID=googid
-      - AUTH_GOOGLE_SECRET=googsecret
-      - AUTH_TRUST_HOST=http://localhost:3000
-      - AUTH_RESEND_KEY="secret"
+      - DATABASE_URL=postgresql://your_db_username:your_db_password@10.0.0.141:5432/bubblymaps
+      - AUTH_SECRET=your_auth_secret_here
+      - AUTH_GOOGLE_ID=your_google_client_id
+      - AUTH_GOOGLE_SECRET=your_google_client_secret
+      - AUTH_TRUST_HOST=https://yourdomain.com
+      - AUTH_RESEND_KEY=your_resend_api_key
+      - NEXTAUTH_URL=https://yourdomain.com # legacy for resend
       # MINIO
-      - MINIO_URL=url
-      - MINIO_BUCKET=bubblymaps
-      - MINIO_USER=user
-      - MINIO_PASS=pass
+      - MINIO_URL=https://your-s3-endpoint.com
+      - MINIO_BUCKET=your-bucket-name
+      - MINIO_USER=your_minio_username
+      - MINIO_PASS=your_minio_password
       # BUBBLY MAPS API
-      - APP_URL=http://localhost:3000
-      - API_TOKEN="secret"
+      - APP_URL=https://yourdomain.com
+      - API_TOKEN=your_api_token
       # LOGGING
-      - DISCORD_WEBHOOK_URL=url
+      - DISCORD_WEBHOOK_URL=your_discord_webhook_url
       # DEBUG
       - APP_VERSION=v5.0.0
       - API_VERSION=v5
+    depends_on:
+      - postgres
+      - minio
+    networks:
+      - bubblymaps
+
+  # POSTGRESQL @ 10.0.0.141:5432
+  postgres:
+    image: postgres:15
+    container_name: bubblymaps-postgres
+    restart: always
+
+    ports:
+      - "5432:5432" # Db
+
+    environment:
+      POSTGRES_USER: your_db_username
+      POSTGRES_PASSWORD: your_db_password
+      PGDATA: /var/lib/postgresql/data
+
+    volumes:
+      - /opt/services/postgres:/var/lib/postgresql/data
+
+    networks:
+      - bubblymaps
+
+  # MINIO @ 10.0.0.141:9000 & 9001
+  minio:
+    image: minio/minio:latest
+    container_name: bubblymaps-minio
+    restart: always
+
+    ports:
+      - "9002:9000"  # API
+      - "9001:9001"  # Console
+
+    environment:
+      MINIO_ROOT_USER: your_minio_username
+      MINIO_ROOT_PASSWORD: your_minio_password
+
+    volumes:
+      - /opt/services/minio:/data
+
+    command: server /data --console-address ":9001"
+
+    networks:
+      - bubblymaps
+
+networks:
+  bubblymaps:
+    name: bubblymaps-net
