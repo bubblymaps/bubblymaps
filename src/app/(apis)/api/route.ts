@@ -4,7 +4,8 @@ var env = process.env;
 export async function GET() {
     return NextResponse.json(
         {
-            version: env.API_VERSION,
+            version: env.APP_VERSION || 'dev',
+            api: env.API_VERSION || 'dev',
         }
     );
 }
