@@ -38,6 +38,23 @@ jobs:
       
       # Step 5: Build application
       - name: Build application
+        env:
+            NODE_ENV: production
+            AUTH_RESEND_KEY: example
+            DATABASE_URL: postgresql://user:pass@host:5432/database?schema=public
+            AUTH_SECRET: example
+            AUTH_GOOGLE_ID: example
+            AUTH_GOOGLE_SECRET: example
+            AUTH_TRUST_HOST: http://localhost:3000
+            MINIO_URL: http://localhost:9000
+            MINIO_BUCKET: bubblymaps
+            MINIO_USER: minioadmin
+            MINIO_PASS: minioadmin
+            APP_VERSION: v5.0.0
+            API_VERSION: v5
+            APP_URL: http://localhost:3000
+            API_TOKEN: example
+
         run: |
           echo "Building application..."
           npm run build
