@@ -18,9 +18,9 @@ docker compose up --build
 
 Access Bubbly Maps at ``http://0.0.0.0:2000``.
 
-## Docs
+## Contributing
 
-See https://docs.bubblymaps.org for APIs.
+See https://docs.bubblymaps.org for APIs and dev environment setup.
 
 ## License
 
