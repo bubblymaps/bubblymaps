@@ -5,7 +5,7 @@ import { useState, useRef } from "react";
 import { useEffect } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
+import { Footer } from "@/components/footer";
 
 import Loading from "@/components/loading";
 import { signOut } from "next-auth/react";
@@ -113,6 +113,7 @@ export default function MyAccount() {
     }
 
     return (
+        <>
         <div className="min-h-screen w-full flex items-center justify-center bg-white dark:bg-background">
             <BackButton />
             <div className="w-full max-w-md mx-auto space-y-8">
@@ -223,6 +224,9 @@ export default function MyAccount() {
                     Log out
                 </button>
             </div>
+            
         </div>
+        <Footer />
+        </>
     );
 }

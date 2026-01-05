@@ -1,42 +1,104 @@
 # Configuration for actions/labeler
 # Labels PRs based on changed files
 
+# Dependencies and package management
 'dependencies':
   - changed-files:
-    - any-glob-to-any-file: ['package*.json', 'package-lock.json']
+    - any-glob-to-any-file: ['package*.json', 'package-lock.json', 'yarn.lock', 'pnpm-lock.yaml']
 
+# Documentation
 'documentation':
   - changed-files:
-    - any-glob-to-any-file: ['**/*.md', 'docs/**/*']
+    - any-glob-to-any-file: ['**/*.md', 'docs/**/*', 'README*', 'CHANGELOG*', 'CONTRIBUTING*']
 
+# Frontend/UI Components
 'frontend':
   - changed-files:
-    - any-glob-to-any-file: ['app/**/*', 'components/**/*', 'public/**/*']
+    - any-glob-to-any-file: ['src/app/**/*', 'src/components/**/*', 'src/hooks/**/*', 'public/**/*']
+    - any-glob-to-any-file: ['src/styles/**/*', '**/*.css', '**/*.scss']
 
+# Backend/API
 'backend':
   - changed-files:
-    - any-glob-to-any-file: ['app/api/**/*', 'lib/**/*']
+    - any-glob-to-any-file: ['src/server/**/*', 'src/lib/**/*']
 
+# API Routes & Endpoints
+'api':
+  - changed-files:
+    - any-glob-to-any-file: ['src/app/api/**/*', 'src/app/(apis)/**/*', 'pages/api/**/*']
+
+# Server Actions & Functions
+'server-actions':
+  - changed-files:
+    - any-glob-to-any-file: ['src/app/**/actions.ts', 'src/app/**/actions.tsx', 'src/actions/**/*', '**/*.action.*']
+
+# Route Handlers (Next.js 13+)
+'route-handlers':
+  - changed-files:
+    - any-glob-to-any-file: ['src/app/**/route.ts', 'src/app/**/route.tsx']
+
+# Middleware
+'middleware':
+  - changed-files:
+    - any-glob-to-any-file: ['middleware.*', 'src/middleware/**/*']
+
+# Database Operations
+'data-access':
+  - changed-files:
+    - any-glob-to-any-file: ['src/server/db/**/*', 'src/lib/db/**/*', 'prisma/migrations/**/*']
+
+# Authentication & Authorization
+'auth':
+  - changed-files:
+    - any-glob-to-any-file: ['src/server/auth/**/*', 'src/app/(auth)/**/*', 'middleware.ts']
+
+# External Integrations
+'integrations':
+  - changed-files:
+    - any-glob-to-any-file: ['src/server/**/*.ts', 'src/lib/**/*.ts']
+    - any-glob-to-any-file: ['src/server/minio/**/*', 'src/server/s3/**/*', 'src/lib/s3/**/*']
+
+# Database & Data
 'database':
   - changed-files:
-    - any-glob-to-any-file: ['prisma/**/*']
+    - any-glob-to-any-file: ['prisma/**/*', 'src/types/**/*']
 
-'docker':
+# Docker & Infrastructure
+'infrastructure':
   - changed-files:
-    - any-glob-to-any-file: ['Dockerfile', 'docker-compose.yml', '.dockerignore']
+    - any-glob-to-any-file: ['Dockerfile*', 'docker-compose*.yml', '.dockerignore', 'docker/**/*']
 
+# CI/CD & GitHub Actions
 'ci/cd':
   - changed-files:
-    - any-glob-to-any-file: ['.github/**/*']
+    - any-glob-to-any-file: ['.github/**/*', '.gitlab-ci.yml', 'scripts/**/*']
 
-'styles':
-  - changed-files:
-    - any-glob-to-any-file: ['**/*.css', 'postcss.config.*', 'tailwind.config.*']
-
+# TypeScript & Configuration
 'typescript':
   - changed-files:
-    - any-glob-to-any-file: ['**/*.ts', '**/*.tsx', 'tsconfig.json']
+    - any-glob-to-any-file: ['**/*.ts', '**/*.tsx', 'tsconfig*.json', 'next-env.d.ts']
 
-'configuration':
+# Build & Tooling
+'build':
   - changed-files:
-    - any-glob-to-any-file: ['*.config.*', '.env*', '*.json']
+    - any-glob-to-any-file: ['next.config.*', 'postcss.config.*', 'tailwind.config.*', 'eslint.config.*', 'prettier.config.*']
+
+# Environment & Config
+'config':
+  - changed-files:
+    - any-glob-to-any-file: ['.env*', 'src/env.*', 'components.json', '*.config.*']
+
+# Testing
+'testing':
+  - changed-files:
+    - any-glob-to-any-file: ['**/*.test.*', '**/*.spec.*', '**/__tests__/**/*', 'jest.config.*', 'vitest.config.*']
+
+# Security & License
+'security':
+  - changed-files:
+    - any-glob-to-any-file: ['SECURITY.md', 'LICENSE*', '.gitignore', '.gitattributes']
+
+# Maps & Location Features
+'maps':
+  - changed-files:
+    - any-glob-to-any-file: ['src/components/map/**/*', 'src/lib/map/**/*', 'src/app/(map)/**/*']

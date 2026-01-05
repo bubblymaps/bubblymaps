@@ -1,9 +1,9 @@
 {
-  "name": "bubbly-maps",
+  "name": "bubblymaps",
   "version": "5.0.0",
   "private": true,
   "type": "module",
-  "author": "Linus Kang",
+  "author": "linuskang",
   "license": "CC BY-NC 4.0",
   "scripts": {
     "build": "next build",

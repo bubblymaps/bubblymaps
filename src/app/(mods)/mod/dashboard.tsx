@@ -29,33 +29,36 @@ import {
   getStats, getRecentContributions,
   getLogs
 } from './actions';
+import { Footer } from '@/components/footer';
 
 export default function Dashboard({ user }: { user: any }) {
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
 
   return (
-    <div className="container mx-auto py-10">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Moderator Dashboard</h1>
-        <p className="text-muted-foreground">{greeting}, {user?.name || user?.email || 'Moderator'}</p>
+    <div className="min-h-screen flex flex-col">
+      <div className="container mx-auto py-10 flex-grow">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-5xl font-bold">{greeting}, {user?.displayName}</h1>
+        </div>
+        <Tabs defaultValue="overview">
+          <TabsList className="mb-4">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="bubblers">Bubblers</TabsTrigger>
+            <TabsTrigger value="users">Users</TabsTrigger>
+            <TabsTrigger value="reviews">Reviews</TabsTrigger>
+            <TabsTrigger value="reports">Reports</TabsTrigger>
+            <TabsTrigger value="logs">Logs</TabsTrigger>
+          </TabsList>
+          <TabsContent value="overview"><OverviewTab /></TabsContent>
+          <TabsContent value="bubblers"><BubblersTab /></TabsContent>
+          <TabsContent value="users"><UsersTab /></TabsContent>
+          <TabsContent value="reviews"><ReviewsTab /></TabsContent>
+          <TabsContent value="reports"><ReportsTab /></TabsContent>
+          <TabsContent value="logs"><LogsTab /></TabsContent>
+        </Tabs>
       </div>
-      <Tabs defaultValue="overview">
-        <TabsList className="mb-4">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="bubblers">Bubblers</TabsTrigger>
-          <TabsTrigger value="users">Users</TabsTrigger>
-          <TabsTrigger value="reviews">Reviews</TabsTrigger>
-          <TabsTrigger value="reports">Reports</TabsTrigger>
-          <TabsTrigger value="logs">Logs</TabsTrigger>
-        </TabsList>
-        <TabsContent value="overview"><OverviewTab /></TabsContent>
-        <TabsContent value="bubblers"><BubblersTab /></TabsContent>
-        <TabsContent value="users"><UsersTab /></TabsContent>
-        <TabsContent value="reviews"><ReviewsTab /></TabsContent>
-        <TabsContent value="reports"><ReportsTab /></TabsContent>
-        <TabsContent value="logs"><LogsTab /></TabsContent>
-      </Tabs>
+      <Footer />
     </div>
   );
 }
@@ -131,6 +134,7 @@ function OverviewTab() {
                 <TableHead>Bubbler</TableHead>
                 <TableHead>User</TableHead>
                 <TableHead>Time</TableHead>
+                <TableHead>Details</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -140,6 +144,32 @@ function OverviewTab() {
                   <TableCell>{item.bubbler?.name || 'Unknown'}</TableCell>
                   <TableCell>{item.user?.name || item.userId || 'System'}</TableCell>
                   <TableCell>{new Date(item.createdAt).toLocaleString()}</TableCell>
+                  <TableCell>
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="ghost" size="sm">View Details</Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+                        <DialogHeader>
+                          <DialogTitle>Contribution Details #{item.id}</DialogTitle>
+                        </DialogHeader>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <h3 className="font-bold mb-2">Old Data</h3>
+                            <pre className="bg-muted p-2 rounded text-xs overflow-auto max-h-[300px]">
+                              {JSON.stringify(item.oldData, null, 2)}
+                            </pre>
+                          </div>
+                          <div>
+                            <h3 className="font-bold mb-2">New Data</h3>
+                            <pre className="bg-muted p-2 rounded text-xs overflow-auto max-h-[300px]">
+                              {JSON.stringify(item.newData, null, 2)}
+                            </pre>
+                          </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -778,6 +808,7 @@ function LogsTab() {
           </Pagination>
         </div>
       )}
+      
     </div>
   );
 }

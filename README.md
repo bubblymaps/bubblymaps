@@ -1,42 +1,33 @@
 # Bubbly Maps
 
+[![Version](https://img.shields.io/github/v/tag/bubblymaps/bubblymaps?label=version&color=blue)](https://github.com/bubblymaps/bubblymaps/releases)
+[![Build](https://img.shields.io/github/actions/workflow/status/bubblymaps/bubblymaps/ci.yml?color=green)](https://github.com/bubblymaps/bubblymaps/actions)
+[![License: CC BY-NC 4.0](https://img.shields.io/badge/License-CC%20BY--NC%204.0-lightgrey)](https://github.com/bubblymaps/bubblymaps/blob/main/LICENSE)
+[![Issues](https://img.shields.io/github/issues/bubblymaps/bubblymaps?color=red)](https://github.com/bubblymaps/bubblymaps/issues)
+[![PRs](https://img.shields.io/github/issues-pr/bubblymaps/bubblymaps?color=orange)](https://github.com/bubblymaps/bubblymaps/pulls)
+[![Stars](https://img.shields.io/github/stars/bubblymaps/bubblymaps?color=yellow)](https://github.com/bubblymaps/bubblymaps/stargazers)
+
 A maps app for locating public water fountains locations. Access the official website [here](https://bubblymaps.org)!
 
-## Self hosting
+## Self hosting (Docker)
 
-### Prerequisites
-
-- Postgresql
-- Node.js >= 24.1.0
-- npm >= 11.3.0
-- Docker >= 28.5.2
-- Minio
-
-### Build from source
-
-1. Run the following commands to build from source
 ```bash
-git clone https://github.com/bubblymaps/maps
-cd maps
-docker compose build
+git clone https://github.com/bubblymaps/bubblymaps
+cd bubblymaps
 ```
 
 2. Edit `docker-compose.yml` with your environment variables.
 3. Start using docker:
 
 ```bash
-docker compose up -d
+docker compose up --build
 ```
 
-Access your instance at ``http://localhost:3000``.
+Access Bubbly Maps at ``http://0.0.0.0:2000``.
 
-## Docs
+## Contributing
 
-See https://docs.bubblymaps.org for API references.
-
-## Security
-
-Please see [SECURITY.md](SECURITY.md).
+See https://docs.bubblymaps.org for APIs and dev environment setup.
 
 ## License
 
