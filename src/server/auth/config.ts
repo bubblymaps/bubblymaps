@@ -88,7 +88,16 @@ export const authConfig = {
         });
 
         if (error) {
-          throw new Error("Failed to send verification email");
+          const errorDetail =
+            (typeof error === "string" && error) ||
+            (typeof error === "object" &&
+              error !== null &&
+              "message" in error &&
+              typeof (error as any).message === "string" &&
+              (error as any).message) ||
+            JSON.stringify(error);
+
+          throw new Error(`Failed to send verification email: ${errorDetail}`);
         }
       },
     }),
