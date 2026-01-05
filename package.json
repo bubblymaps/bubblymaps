@@ -5,6 +5,9 @@
   "type": "module",
   "author": "linuskang",
   "license": "CC BY-NC 4.0",
+  "prisma": {
+    "schema": "src/prisma/schema.prisma"
+  },
   "scripts": {
     "build": "next build",
     "check": "next lint && tsc --noEmit",
