@@ -22,7 +22,7 @@ RUN apt-get update \
 ENV NODE_ENV=development
 COPY package.json ./
 COPY package-lock.json* ./
-COPY prisma ./prisma
+COPY src/prisma ./prisma
 RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
 
 ############################################
@@ -57,7 +57,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 # Generate Prisma client before building Next.js
-RUN npx prisma generate
+RUN npx prisma generate --schema=./src/prisma/schema.prisma
 
 # Build Next.js (outputs .next including standalone server)
 ENV SKIP_ENV_VALIDATION=1
