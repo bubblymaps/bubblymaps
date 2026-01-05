@@ -13,6 +13,7 @@ export const env = createEnv({
         : z.string().optional(),
     AUTH_GOOGLE_ID: z.string(),
     AUTH_GOOGLE_SECRET: z.string(),
+    AUTH_RESEND_KEY: z.string(),
     DATABASE_URL: z.string().url(),
     DISCORD_WEBHOOK_URL: z.string().url().optional(),
     NODE_ENV: z
@@ -37,6 +38,7 @@ export const env = createEnv({
     AUTH_SECRET: process.env.AUTH_SECRET,
     AUTH_GOOGLE_ID: process.env.AUTH_GOOGLE_ID,
     AUTH_GOOGLE_SECRET: process.env.AUTH_GOOGLE_SECRET,
+    AUTH_RESEND_KEY: process.env.AUTH_RESEND_KEY,
     DATABASE_URL: process.env.DATABASE_URL,
     DISCORD_WEBHOOK_URL: process.env.DISCORD_WEBHOOK_URL,
     NODE_ENV: process.env.NODE_ENV,
