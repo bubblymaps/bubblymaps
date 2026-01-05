@@ -63,11 +63,6 @@
   - changed-files:
     - any-glob-to-any-file: ['prisma/**/*', 'src/types/**/*']
 
-# Authentication & Security
-'auth':
-  - changed-files:
-    - any-glob-to-any-file: ['src/server/auth/**/*', 'src/app/(auth)/**/*']
-
 # Docker & Infrastructure
 'infrastructure':
   - changed-files:
