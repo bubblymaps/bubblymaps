@@ -270,7 +270,7 @@ export async function getRecentLogs() {
 export async function getRecentContributions() {
   await checkMod();
   return db.bubblerLog.findMany({
-    take: 10,
+    take: 30,
     orderBy: { createdAt: 'desc' },
     include: { 
       user: { select: { name: true, email: true } },
