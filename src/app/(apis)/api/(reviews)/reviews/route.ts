@@ -120,51 +120,78 @@ export async function POST(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-  try {
-    const url = new URL(req.url)
-    const idParam = url.searchParams.get("id")
-    const reviewId = Number(idParam)
 
+  // Check session / API token
+  const session = await auth();
+  const userToken = req.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
+  const apiToken = process.env.API_TOKEN;
+  const hasApiToken = !!apiToken && !!userToken && apiToken === userToken;
+
+  if (!session && !hasApiToken) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Unauthorized"
+      },
+      { status: 401 }
+    );
+  }
+
+  try {
+    const reviewId = Number(new URL(req.url).searchParams.get("id"))
+
+    // No review ID
     if (!reviewId) {
-      return NextResponse.json({ error: "Missing review ID" }, { status: 400 })
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Missing review ID"
+        },
+        { status: 400 }
+      );
     }
 
+    // Not found
     const review = await Reviews.getId(reviewId)
     if (!review) {
-      return NextResponse.json({ error: "Review not found" }, { status: 404 })
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Review not found"
+        },
+        { status: 404 }
+      );
     }
 
-    const authHeader = req.headers.get("authorization")
-    const token = authHeader?.split(" ")[1]
-
-    const apiTokenMatches = token && (token === process.env.API_KEY || token === process.env.API_TOKEN)
-    if (apiTokenMatches) {
-      const deletedReview = await Reviews.delete(reviewId)
-      return NextResponse.json({ review: deletedReview })
-    }
-
-    const session = await auth();
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
-
-    if (session.user.moderator) {
-      const deletedReview = await Reviews.delete(reviewId)
-      return NextResponse.json({ review: deletedReview })
-    }
-
-    if (review.userId !== session.user.id) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    if (review.userId !== session?.user?.id && !session?.user?.moderator) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Forbidden"
+        },
+        { status: 403 }
+      );
     }
 
     const deletedReview = await Reviews.delete(reviewId)
-    return NextResponse.json({ review: deletedReview })
-  } catch (err: unknown) {
-    const errorMessage = err instanceof Error ? err.message : "Failed to delete review";
-    console.error(err)
+
     return NextResponse.json(
-      { error: errorMessage },
+      {
+        success: true,
+        review: deletedReview
+      },
+      { status: 200 }
+    );
+
+  } catch (err: any) {
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: err.message
+      },
       { status: 500 }
-    )
+    );
+
   }
 }
