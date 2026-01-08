@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, MapPin, ArrowRight, Loader2 } from 'lucide-react';
+import { Search, MapPin, ArrowRight, Loader2, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Footer } from '@/components/footer';
@@ -35,6 +35,20 @@ export default function HomePage() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [wordIndex, setWordIndex] = useState(0);
   const words = ["water bubblers", "fountains", "refill stations"];
+  const [showArrow, setShowArrow] = useState(true);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 50) {
+        setShowArrow(false);
+      } else {
+        setShowArrow(true);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -90,11 +104,10 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-background dark:bg-background flex flex-col">
-      {/* Navigation */}
       <Header />
 
-      {/* Hero Section */}
-      <main className="flex-1 flex flex-col items-center justify-center px-4 text-center -mt-20">
+      <main className="min-h-screen flex flex-col items-center justify-center px-4 text-center -mt-20">
+
         <div className="max-w-3xl mx-auto space-y-8">
           <div className="space-y-4">
             <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-50">
@@ -119,7 +132,6 @@ export default function HomePage() {
             </p>
           </div>
 
-          {/* Search Box */}
           <div className="relative max-w-xl mx-auto w-full">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400" />
@@ -134,7 +146,6 @@ export default function HomePage() {
               )}
             </div>
 
-            {/* Results Dropdown */}
             {(results.length > 0 || (query && !loading && results.length === 0 && debouncedQuery)) && (
               <Card className="absolute top-full left-0 right-0 mt-2 p-2 shadow-xl z-10 max-h-80 overflow-y-auto">
                 {results.length > 0 ? (
@@ -219,7 +230,58 @@ export default function HomePage() {
         </div>
       </main>
 
-      {/* Footer */}
+      {showArrow && (
+        <motion.div
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 text-zinc-400 dark:text-zinc-500 cursor-pointer"
+          animate={{ y: [0, 10, 0] }}
+          transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+          onClick={() => {
+            const aboutSection = document.getElementById('about-section');
+            aboutSection?.scrollIntoView({ behavior: 'smooth' });
+          }}
+        >
+          <ChevronDown className="w-6 h-6" />
+        </motion.div>
+
+      )}
+
+
+      <section id="about-section" className="w-full py-20 px-4 mb-60">
+        <div className="max-w-4xl mx-auto text-center space-y-6">
+          <h2 className="text-3xl md:text-4xl font-bold text-zinc-900 dark:text-zinc-50">
+            About the platform
+          </h2>
+
+          <p className="text-lg text-zinc-600 dark:text-zinc-400 max-w-3xl mx-auto">
+            Bubbly Maps is a community powered map of public water bubblers. My solution uses one of the most comprehensive datasets of
+            public water sources available, with over 140,000 waypoint entries.
+          </p>
+
+          <br />
+
+          <p className="text-lg text-zinc-600 dark:text-zinc-400 max-w-3xl mx-auto">
+            I built this platform because many solutions deployed at the moment are: outdated, not user friendly, not open source, lack comprehensive data, or have extremely limited coverage.
+            You can find out more information about the architecture and design of the platform in my
+            {" "}<Link
+              href={"https://linuskang.au/blog"}
+              className="text-neutral-300 hover:text-neutral-50 underline-offset-2 transition-colors"
+            >
+              blog
+            </Link>
+            , and follow along for the journey.
+
+          </p>
+
+          <br />
+
+          <p className="text-lg text-zinc-600 dark:text-zinc-400 max-w-3xl mx-auto">Enjoy exploring the platform!</p>
+          <p className="mb-0 mt-0">Linus Kang,</p>
+          <p className="mt-0">Lead developer</p>
+
+        </div>
+      </section>
+
+
       <Footer />
     </div>
   );
