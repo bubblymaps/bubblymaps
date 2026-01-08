@@ -7,6 +7,11 @@ import "./src/env.js";
 /** @type {import("next").NextConfig} */
 const config = {
     output: "standalone",
+    logging: {
+        fetches: {
+            fullUrl: false,
+        },
+    },
 };
 
 export default config;

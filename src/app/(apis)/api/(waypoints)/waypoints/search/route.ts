@@ -6,14 +6,37 @@ export async function GET(request: NextRequest) {
     const query = searchParams.get("q");
 
     if (!query) {
-        return NextResponse.json({ waypoints: [] });
+        return NextResponse.json(
+            { 
+                success: false,
+                error: "Missing required parameters"
+            },
+            { status: 400 }
+        );
     }
 
     try {
         const waypoints = await Waypoints.search(query);
-        return NextResponse.json({ waypoints });
-    } catch (error) {
-        console.error("Search error:", error);
-        return NextResponse.json({ error: "Failed to search waypoints" }, { status: 500 });
+
+        return NextResponse.json(
+            { 
+                success: true,
+                waypoints 
+            },
+            { status: 200 }
+        );
+        
+    } 
+    
+    catch (err: any) {
+
+        return NextResponse.json(
+            {
+                success: false,
+                error: err.message
+            },
+            { status: 500 }
+        );
+
     }
 }

@@ -16,6 +16,7 @@ export const env = createEnv({
     AUTH_RESEND_KEY: z.string(),
     DATABASE_URL: z.string().url(),
     DISCORD_WEBHOOK_URL: z.string().url().optional(),
+    API_TOKEN: z.string().optional(),
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
@@ -41,6 +42,7 @@ export const env = createEnv({
     AUTH_RESEND_KEY: process.env.AUTH_RESEND_KEY,
     DATABASE_URL: process.env.DATABASE_URL,
     DISCORD_WEBHOOK_URL: process.env.DISCORD_WEBHOOK_URL,
+    API_TOKEN: process.env.API_TOKEN,
     NODE_ENV: process.env.NODE_ENV,
   },
   /**

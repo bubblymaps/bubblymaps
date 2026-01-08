@@ -2,6 +2,8 @@ import { db } from "@/server/db";
 
 import type { User } from "@/types/users";
 
+const env = process.env
+
 export interface UserData {
   name?: string;
   displayName?: string;
@@ -83,6 +85,27 @@ export class Users {
       const errorMessage = err instanceof Error ? err.message : "There was an issue updating this user";
       throw new Error(errorMessage);
     }
+  }
+
+  static async isHandleReserved(handle: string) {
+    let reservedHandles: string[] = [];
+    if (env.RESERVED_USERNAMES) {
+      try {
+        reservedHandles = JSON.parse(env.RESERVED_USERNAMES).map((h: string) => h.trim().toLowerCase());
+      } catch {
+        reservedHandles = env.RESERVED_USERNAMES.split(",").map((h) => h.trim().toLowerCase());
+      }
+    }
+    return reservedHandles.includes(handle.toLowerCase());
+  }
+
+  static async isHandleTaken(handle: string, excludeUserId?: string) {
+    const user = await db.user.findUnique({
+      where: { handle: handle.toLowerCase() },
+    });
+    if (!user) return false;
+    if (excludeUserId && user.id === excludeUserId) return false;
+    return true;
   }
 
   static async verify(userId: string) {

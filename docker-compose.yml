@@ -1,13 +1,13 @@
 version: "3.9"
 
 services:
-  # BUBBLY MAPS @ 10.0.0.141:2000
   bubblymaps:
     build:
       context: .
       dockerfile: Dockerfile
+    restart: always
     ports:
-      - "2000:3000"
+      - "3000:3000"
     environment:
       # AUTH
       - DATABASE_URL=postgresql://your_db_username:your_db_password@10.0.0.141:5432/bubblymaps
@@ -28,15 +28,14 @@ services:
       # LOGGING
       - DISCORD_WEBHOOK_URL=your_discord_webhook_url
       # DEBUG
-      - APP_VERSION=v5.0.1
-      - API_VERSION=v5
+      - APP_VERSION=v5.0.2
+      - API_VERSION=v6
     depends_on:
       - postgres
       - minio
     networks:
       - bubblymaps
 
-  # POSTGRESQL @ 10.0.0.141:5432
   postgres:
     image: postgres:15
     container_name: bubblymaps-postgres
@@ -56,7 +55,6 @@ services:
     networks:
       - bubblymaps
 
-  # MINIO @ 10.0.0.141:9000 & 9001
   minio:
     image: minio/minio:latest
     container_name: bubblymaps-minio

@@ -21,7 +21,7 @@ export function Watermark() {
         className={`text-[13px] font-medium ${
           isDark
             ? "text-white opacity-50"
-            : "text-gray-400 [text-shadow:0_0_1px_white]"
+            : "text-gray-400 [text-shadow:0_0_3px_white]"
         }`}
       >
         Bubbly Maps

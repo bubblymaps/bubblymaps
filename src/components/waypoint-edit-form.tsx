@@ -88,7 +88,7 @@ export function WaypointEditForm({ waypoint }: WaypointEditFormProps) {
 
       toast.success("Waypoint updated successfully")
       router.refresh()
-      router.push(`/waypoints/${waypoint.id}`)
+      router.push(`/w/${waypoint.id}`)
     } catch (error) {
         if (error instanceof Error) {
             toast.error(error.message)
@@ -101,7 +101,7 @@ export function WaypointEditForm({ waypoint }: WaypointEditFormProps) {
   }
 
   return (
-    <Card className="border-none shadow-lg">
+    <Card className="border-none bg-background">
       <CardHeader className="pb-4">
         <CardTitle className="text-xl">Edit Waypoint</CardTitle>
       </CardHeader>

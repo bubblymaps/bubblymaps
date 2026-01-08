@@ -8,6 +8,8 @@ import { useSession } from "next-auth/react"
 import { toast } from "sonner"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 
+import { Footer } from "@/components/footer"
+
 export default function AddWaypointPage() {
   const { theme } = useTheme()
   const { data: session, status } = useSession()
@@ -227,6 +229,7 @@ export default function AddWaypointPage() {
       }
 
       const result = await res.json()
+
       toast.success("Bubbler submitted successfully! Redirecting...")
       
       // reset
@@ -236,7 +239,7 @@ export default function AddWaypointPage() {
       
       // Redirect to the new waypoint after a short delay
       setTimeout(() => {
-        window.location.href = `/waypoints/${result.id}`
+        window.location.href = `/w/${result.result.id}`
       }, 1500)
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : String(err);
@@ -247,11 +250,13 @@ export default function AddWaypointPage() {
   }
 
   return (
+    <>
     <div className="min-h-screen bg-background">
       <main className="mx-auto max-w-4xl p-6">
         <h1 className="text-2xl font-bold mb-4">Add a bubbler</h1>
+      <p className="text-red-500">This page has been deprecated, may not function as intended.</p>
 
-        <div className="bg-card rounded-lg border shadow-sm p-6">
+        <div className="p-6">
           <div className="mb-6">
             <div className="flex items-center gap-3">
               <div className={step === 1 ? "px-3 py-1 bg-primary text-primary-foreground rounded font-medium" : "px-3 py-1 border rounded text-muted-foreground"}>1</div>
@@ -610,6 +615,9 @@ export default function AddWaypointPage() {
           </div>
         </div>
       </main>
+      
     </div>
+    <Footer />
+    </>
   )
 }

@@ -1,7 +1,8 @@
 import { useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { useState } from "react";
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import { User as UserIcon, Settings, LogOut, FileText, Shield, ShieldCheck } from "lucide-react";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuLabel } from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
   AlertDialogTrigger,
@@ -31,15 +32,31 @@ export default function User() {
             </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-            <DropdownMenuItem className="cursor-pointer" onClick={() => router.push("/profile/" + (session?.user?.name || "user"))}>My Profile</DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="cursor-pointer" onClick={() => router.push("/myaccount")}>My Account</DropdownMenuItem>
-            { session?.user.moderator && (
-              <DropdownMenuItem className="cursor-pointer" onClick={() => router.push("/mod")}>Mod Panel</DropdownMenuItem>
-            )}
+          <DropdownMenuLabel className="flex items-center gap-3 px-3 py-3">
+            <div className="flex flex-col min-w-0">
+              <span className="font-medium text-zinc-900 dark:text-zinc-100 truncate">
+                @{session?.user?.handle} ({session?.user?.displayName})
+              </span>
+              <span className="text-sm text-zinc-500 dark:text-zinc-400 truncate">
+                {session?.user?.email}
+              </span>
+            </div>
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator />
+            <DropdownMenuItem className="cursor-pointer" onClick={() => router.push("/u/" + (session?.user?.name || "user"))}>
+              <UserIcon className="w-4 h-4 mr-2" />
+              My Profile
+            </DropdownMenuItem>
+            <DropdownMenuItem className="cursor-pointer" onClick={() => router.push("/settings")}>
+              <Settings className="w-4 h-4 mr-2" />
+              Settings
+            </DropdownMenuItem>
             <AlertDialog open={open} onOpenChange={setOpen}>
               <AlertDialogTrigger asChild>
-                <DropdownMenuItem className="cursor-pointer" onSelect={e => e.preventDefault()}>Logout</DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer" onSelect={e => e.preventDefault()}>
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Logout
+                </DropdownMenuItem>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
@@ -55,9 +72,24 @@ export default function User() {
               </AlertDialogContent>
             </AlertDialog>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="cursor-pointer" onClick={() => router.push("/terms")}>Terms of Service</DropdownMenuItem>
-            <DropdownMenuItem className="cursor-pointer" onClick={() => router.push("/privacy")}>Privacy Policy</DropdownMenuItem>
-            <DropdownMenuItem className="cursor-pointer" onClick={() => router.push("https://github.com/bubblymaps/maps")}>GitHub</DropdownMenuItem>
+            <DropdownMenuItem className="cursor-pointer" onClick={() => router.push("/legal/terms")}>
+              <FileText className="w-4 h-4 mr-2" />
+              Terms of Service
+            </DropdownMenuItem>
+            <DropdownMenuItem className="cursor-pointer" onClick={() => router.push("/legal/privacy")}>
+              <Shield className="w-4 h-4 mr-2" />
+              Privacy Policy
+            </DropdownMenuItem>
+            
+            { session?.user.moderator && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="cursor-pointer" onClick={() => router.push("/manage")}>
+                  <ShieldCheck className="w-4 h-4 mr-2" />
+                  Mod Panel
+                </DropdownMenuItem>
+              </>
+            )}
         </DropdownMenuContent>
     </DropdownMenu>
     </>
