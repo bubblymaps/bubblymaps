@@ -33,6 +33,7 @@ import {
   ArrowUpRight,
   ArrowRight,
 } from 'lucide-react';
+import { Footer } from '@/components/footer';
 
 import type { Waypoint, WaypointLog } from '@/types/waypoints';
 import { Button } from '@/components/ui/button';
@@ -877,6 +878,7 @@ export default function WaypointPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <Footer />
     </div>
   );
 }

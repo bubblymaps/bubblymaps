@@ -8,6 +8,7 @@ import { ThemeToggle } from "@/components/map/controls/theme-toggle";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { Footer } from "@/components/footer"
 
 export default function LoginPage() {
     const router = useRouter();
@@ -48,6 +49,7 @@ export default function LoginPage() {
     };
 
     return (
+        <>
         <div className="min-h-screen w-full flex items-center justify-center bg-white dark:bg-background relative">
             <div className="absolute top-4 left-4">
                 <Button
@@ -139,6 +141,9 @@ export default function LoginPage() {
                     </form>
                 </div>
             </div>
+            
         </div>
+        <Footer/>
+        </>
     );
 }

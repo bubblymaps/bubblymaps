@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 
 import { Users } from "@/server/user/user"
 import { BackButton } from "@/components/back"
+import { Footer } from "@/components/footer"
 
 interface ProfilePageParams {
     params: Promise<{ handle: string }>
@@ -211,6 +212,8 @@ export default async function ProfilePage({ params }: ProfilePageParams) {
                 </div>
 
             </div>
+            <Footer />
         </div>
+        
     )
 }

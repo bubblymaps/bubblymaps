@@ -1,5 +1,6 @@
 import { BackButton } from "@/components/back"
 import { Button } from "@/components/ui/button"
+import { Footer } from "@/components/footer"
 
 export default function TermsPage() {
     return (
@@ -601,6 +602,7 @@ export default function TermsPage() {
 
                 </div>
             </div>
+            <Footer />
         </div>
     )
 }

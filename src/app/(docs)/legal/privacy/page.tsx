@@ -1,5 +1,6 @@
 import { BackButton } from "@/components/back"
 import { Button } from "@/components/ui/button"
+import { Footer } from "@/components/footer"
 
 export default function PrivacyPage() {
     return (
@@ -891,6 +892,7 @@ export default function PrivacyPage() {
 
                 </div>
             </div>
+            <Footer />
         </div>
     )
 }
