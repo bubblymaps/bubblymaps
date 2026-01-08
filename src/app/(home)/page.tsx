@@ -85,7 +85,7 @@ export default function HomePage() {
   }, [debouncedQuery]);
 
   const handleSelect = (result: SearchResult) => {
-    router.push(`/?lat=${result.latitude}&lng=${result.longitude}&zoom=20`);
+    router.push(`/map?lat=${result.latitude}&lng=${result.longitude}&zoom=20`);
   };
 
   return (

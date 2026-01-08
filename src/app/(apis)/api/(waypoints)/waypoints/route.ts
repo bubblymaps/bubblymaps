@@ -4,80 +4,41 @@ import { auth } from "@/server/auth";
 import { awardXP, canCreateWaypoint } from "@/server/xp/exp";
 import { XP_REQUIRED } from "@/server/xp/config";
 
-/**
- * GET /api/waypoints
- * Returns all waypoints
- */
-export async function GET(request: NextRequest) {
-    const waypoints = await Waypoints.getAll();
+export async function GET() {
+  const waypoints = await Waypoints.getAll();
 
-    return NextResponse.json(
-        { 
-            license: "CC BY-NC 4.0",
-            author: "Linus Kang",
-            waypoints 
-        }
-    );
+  return NextResponse.json(
+    {
+      success: true,
+      license: "CC BY-NC 4.0",
+      author: "Linus Kang (mail@linus.id.au)",
+      waypoints
+    },
+    { status: 200 }
+  );
+
 }
 
-/**
- * POST /api/waypoints
- * Creates a new waypoint
- * 
- * Authentication:
- * - Requires either a valid session OR an API token in the Authorization header
- * 
- * API Token Usage Examples:
- * 
- * curl:
- * ```bash
- * curl -X POST https://your-domain.com/api/waypoints \
- *   -H "Content-Type: application/json" \
- *   -H "Authorization: Bearer YOUR_API_TOKEN" \
- *   -d '{
- *     "name": "Example Waypoint",
- *     "latitude": -33.87,
- *     "longitude": 151.21,
- *     "description": "A great location",
- *     "amenities": ["parking", "wifi"],
- *     "region": "Sydney"
- *   }'
- * ```
- * 
- * JavaScript/fetch:
- * ```javascript
- * fetch('https://your-domain.com/api/waypoints', {
- *   method: 'POST',
- *   headers: {
- *     'Content-Type': 'application/json',
- *     'Authorization': 'Bearer YOUR_API_TOKEN'
- *   },
- *   body: JSON.stringify({
- *     name: 'Example Waypoint',
- *     latitude: -33.87,
- *     longitude: 151.21,
- *     description: 'A great location',
- *     amenities: ['parking', 'wifi'],
- *     region: 'Sydney'
- *   })
- * });
- * ```
- * 
- * With API token, you can also set admin fields:
- * - `approved`: boolean
- * - `verified`: boolean
- * - `addedByUserId`: string (defaults to "api" if not provided)
- */
-export async function POST(req: Request) {
-  try {
-    const session = await auth();
-    const apiToken = req.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
-    const expectedToken = process.env.API_TOKEN;
-    const hasApiToken = !!apiToken && !!expectedToken && apiToken === expectedToken;
+export async function POST(req: NextRequest) {
 
-    if (!session && !hasApiToken) {
-      return NextResponse.json({ error: "Unauthorized: missing valid session or API token" }, { status: 401 });
-    }
+  const session = await auth();
+  const apiToken = req.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
+  const expectedToken = process.env.API_TOKEN;
+  const hasApiToken = !!apiToken && !!expectedToken && apiToken === expectedToken;
+
+  if (!session && !hasApiToken) {
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Unauthorized"
+      },
+      { status: 401 }
+    );
+
+  }
+
+  try {
 
     const data = await req.json();
 
@@ -92,33 +53,62 @@ export async function POST(req: Request) {
       "region",
     ];
 
-    // Allow API token or moderator users to set admin-only fields
+    // Allow admin fields if token/moderator
     if (hasApiToken || session?.user?.moderator) {
       allowedFields.push("approved", "verified", "addedByUserId");
     }
 
-     const filteredData: any = {};
+    const filteredData: any = {};
+
     for (const field of allowedFields) {
       if (data[field] !== undefined) filteredData[field] = data[field];
     }
 
+    // Set addedByUserId
     if (session?.user?.id) {
       filteredData.addedByUserId = session.user.id;
     } else if (hasApiToken) {
       filteredData.addedByUserId = data.addedByUserId ?? "api";
     }
 
-    // Enforce XP requirement for creating a waypoint for authenticated users
-    if (session?.user?.id) {
-      const allowed = await canCreateWaypoint(session.user.id);
-      if (!allowed) {
-        return NextResponse.json(
-          { error: `Insufficient XP to create a waypoint. Required: ${XP_REQUIRED.CREATE_WAYPOINT}` },
-          { status: 403 }
-        );
-      }
+    // Validate latitude and longitude
+    if (
+      typeof filteredData.latitude !== "number" ||
+      typeof filteredData.longitude !== "number" ||
+      filteredData.latitude < -90 ||
+      filteredData.latitude > 90 ||
+      filteredData.longitude < -180 ||
+      filteredData.longitude > 180
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Invalid latitude or longitude"
+        },
+        { status: 400 }
+      );
     }
 
+    // Check XP
+    if (session?.user?.id) {
+
+      const allowed = await canCreateWaypoint(session.user.id);
+
+      if (!allowed) {
+
+        return NextResponse.json(
+          {
+            success: false,
+            error: `Forbidden. Required XP: ${XP_REQUIRED.CREATE_WAYPOINT}`
+          },
+          { status: 403 }
+        );
+
+      }
+
+    }
+
+    // Check required fields
     const requiredFields: (keyof WaypointData)[] = [
       "name",
       "latitude",
@@ -132,26 +122,45 @@ export async function POST(req: Request) {
         filteredData[field] === null ||
         (typeof filteredData[field] === "string" && filteredData[field].trim() === "")
       ) {
+
         return NextResponse.json(
-          { error: `Missing required field: ${field}` },
+          {
+            success: false,
+            error: `Missing required field: ${field}`
+          },
           { status: 400 }
         );
+
       }
     }
 
+    // Add waypoint
     const newWaypoint = await Waypoints.add(filteredData as WaypointData);
 
+    // Award XP
     if (session?.user?.id) {
       await awardXP(session.user.id, 'CREATE_WAYPOINT');
     }
 
-    return NextResponse.json(newWaypoint, { status: 201 });
-  } catch (err: unknown) {
-    const errorMessage = err instanceof Error ? err.message : "Failed to create waypoint";
-    console.error("Error creating waypoint:", err);
     return NextResponse.json(
-      { error: errorMessage },
+      {
+        success: true,
+        result: newWaypoint
+      },
+      { status: 201 }
+    );
+
+  }
+
+  catch (err: any) {
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: err.message
+      },
       { status: 400 }
     );
+
   }
 }
