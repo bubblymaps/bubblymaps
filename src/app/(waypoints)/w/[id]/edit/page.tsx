@@ -24,7 +24,9 @@ export default async function WaypointEditPage({ params }: PageProps) {
 
   const allowed = await canEditWaypoint(session.user.id)
   if (!allowed) {
-      redirect(`/waypoints/${id}`)
+      return (
+        <h1>You do not have permission to edit this waypoint.</h1>
+      )
   }
 
   const waypoint = await Waypoints.byId(id)
@@ -34,7 +36,7 @@ export default async function WaypointEditPage({ params }: PageProps) {
   }
 
   return (
-    <div className="flex min-h-screen w-full items-center justify-center bg-muted/40 p-4 md:p-10">
+    <div className="flex min-h-screen w-full items-center justify-center p-4 md:p-10">
       <div className="w-full max-w-2xl">
         <WaypointEditForm waypoint={waypoint as unknown as Waypoint} />
       </div>

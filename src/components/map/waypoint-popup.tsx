@@ -152,7 +152,7 @@ export default function WaypointPopup({ coordinates, id }: WaypointPopupProps) {
             <div className="flex items-center gap-2 mb-2 mt-2">
               {addedBy.image && (
                 <a
-                  href={`/profile/${addedBy.handle}`}
+                  href={`/u/${addedBy.handle}`}
                   className="font-medium"
                 >
                   <img
@@ -164,7 +164,7 @@ export default function WaypointPopup({ coordinates, id }: WaypointPopupProps) {
               )}
 
               <a
-                href={`/profile/${addedBy.handle}`}
+                href={`/u/${addedBy.handle}`}
                 className="font-medium"
               >
                 {addedBy.handle}
@@ -185,7 +185,7 @@ export default function WaypointPopup({ coordinates, id }: WaypointPopupProps) {
             type="submit"
             className="-ml-2 -mr-2 px-4 h-8 rounded-md bg-blue-600 text-white font-semibold text-sm hover:bg-blue-700 transition-colors -mt-2 mb-2 w-[calc(100%+1rem)]"
         >
-            <a href={`/waypoints/${id}`} className="w-full h-full flex items-center justify-center">
+            <a href={`/w/${id}`} className="w-full h-full flex items-center justify-center">
               View more
             </a>
         </button>

@@ -5,7 +5,7 @@ export function Credit() {
   const [versionNo, setVersionNo] = useState<string>("");
 
   useEffect(() => {
-    fetch("/api/meta")
+    fetch("/api")
       .then((res) => res.json())
       .then((data) => {
         if (data.version) setVersionNo(data.version);

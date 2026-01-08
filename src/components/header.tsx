@@ -19,7 +19,7 @@ export default function Header() {
                     </Button>
                 )}
                 <Button asChild>
-                    <Link href="/">Open Map</Link>
+                    <Link href="/map">Open Map</Link>
                 </Button>
             </div>
         </header>

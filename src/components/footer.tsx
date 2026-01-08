@@ -29,7 +29,7 @@ export function Footer() {
         </a>
         {" | "}
         <a
-          href="/privacy"
+          href="/legal/privacy"
           target="_blank"
           rel="noopener noreferrer"
           className="font-semibold text-white-600 dark:text-white-400 hover:underline underline-offset-2"
@@ -38,7 +38,7 @@ export function Footer() {
         </a>
         {" | "}
         <a
-          href="/terms"
+          href="/legal/terms"
           target="_blank"
           rel="noopener noreferrer"
           className="font-semibold text-white-600 dark:text-white-400 hover:underline underline-offset-2"

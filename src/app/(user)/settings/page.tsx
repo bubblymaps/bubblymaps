@@ -4,7 +4,6 @@ import { useSession } from "next-auth/react";
 import { useState, useRef } from "react";
 import { useEffect } from "react";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
 import { Footer } from "@/components/footer";
 
 import Loading from "@/components/loading";
@@ -21,10 +20,8 @@ export default function MyAccount() {
 
     const [loading, setLoading] = useState(false);
     const [uploading, setUploading] = useState(false);
-    const [message, setMessage] = useState("");
 
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const router = useRouter();
 
     useEffect(() => {
         if (session?.user) {
@@ -45,12 +42,13 @@ export default function MyAccount() {
     }
 
     async function handleSubmit(e: React.FormEvent) {
+
         e.preventDefault();
         setLoading(true);
-        setMessage("");
+
         try {
-            const res = await fetch("/api/account/edit", {
-                method: "POST",
+            const res = await fetch("/api/account", {
+                method: "PATCH",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     handle: username,
@@ -60,15 +58,23 @@ export default function MyAccount() {
                 }),
                 credentials: "include"
             });
+
             const data = await res.json();
+
             if (res.ok) {
                 toast.success("Account preferences have been updated.");
-            } else {
+            } 
+            
+            else {
                 toast.error(data.error || "An error occured. Please try again later.");
             }
-        } catch (err) {
-            toast.error("Network error. Please try again later.");
+
+        } 
+        
+        catch (err: any) {
+            toast.error(err.message || "An error occured. Please try again later.");
         }
+
         setLoading(false);
     }
 
@@ -76,13 +82,11 @@ export default function MyAccount() {
         const file = e.target.files?.[0];
         if (!file) return;
 
-        // Validate file type
         if (!file.type.startsWith("image/")) {
             toast.error("Please select an image file.");
             return;
         }
 
-        // Validate file size (max 5MB)
         if (file.size > 5 * 1024 * 1024) {
             toast.error("Image must be less than 5MB.");
             return;
@@ -93,7 +97,7 @@ export default function MyAccount() {
             const formData = new FormData();
             formData.append("file", file);
 
-            const res = await fetch("/api/account/upload", {
+            const res = await fetch("/api/account", {
                 method: "POST",
                 body: formData,
                 credentials: "include"
@@ -102,12 +106,10 @@ export default function MyAccount() {
             const data = await res.json();
             if (res.ok && data.url) {
                 setProfilePic(data.url);
-                toast.success("Image uploaded! Click Save Changes to update your profile.");
-            } else {
-                toast.error(data.error || "Failed to upload image.");
+                toast.success("Image uploaded! Click save to finish updating your profile.");
             }
         } catch (err) {
-            toast.error("Failed to upload image. Please try again.");
+            toast.error(`Failed to upload image: ${err instanceof Error ? err.message : String(err)}`);
         }
         setUploading(false);
     }
@@ -158,7 +160,6 @@ export default function MyAccount() {
                             type="url"
                             value={profilePic}
                             onChange={e => setProfilePic(e.target.value)}
-                            className="w-full px-3 py-2 rounded-md border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow duration-200 hover:shadow-md"
                         />
                     </div>
                     <div className="w-full text-left">
@@ -168,7 +169,6 @@ export default function MyAccount() {
                             type="text"
                             value={displayName}
                             onChange={e => setDisplayName(e.target.value)}
-                            className="w-full px-3 py-2 rounded-md border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow duration-200 hover:shadow-md"
                         />
                     </div>
 
@@ -180,7 +180,7 @@ export default function MyAccount() {
                                 type="text"
                                 value={username}
                                 onChange={e => setUsername(e.target.value)}
-                                className="w-full pl-7 pr-3 py-2 rounded-md border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow duration-200 hover:shadow-md"
+                                className="pl-7"
                             />
                             <span className="absolute left-2 top-1/2 -translate-y-1/2 text-zinc-500 dark:text-zinc-400 select-none pointer-events-none">@</span>
                         </div>
@@ -193,7 +193,6 @@ export default function MyAccount() {
                             value={bio}
                             onChange={e => setBio(e.target.value)}
                             rows={3}
-                            className="w-full px-3 py-2 rounded-md border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none transition-shadow duration-200 hover:shadow-md"
                         />
                     </div>
 

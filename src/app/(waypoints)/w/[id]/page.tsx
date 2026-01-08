@@ -31,6 +31,7 @@ import {
   FileEdit,
   RefreshCw,
   ArrowUpRight,
+  ArrowRight,
 } from 'lucide-react';
 
 import type { Waypoint, WaypointLog } from '@/types/waypoints';
@@ -129,22 +130,21 @@ function StarRating({ rating, size = 'sm' }: { rating: number; size?: 'sm' | 'md
       {[1, 2, 3, 4, 5].map((star) => (
         <Star
           key={star}
-          className={`${sizeClasses[size]} ${
-            star <= rating
+          className={`${sizeClasses[size]} ${star <= rating
               ? 'fill-yellow-400 text-yellow-400'
               : 'fill-zinc-200 text-zinc-200 dark:fill-zinc-700 dark:text-zinc-700'
-          }`}
+            }`}
         />
       ))}
     </div>
   );
 }
 
-function InteractiveStarRating({ 
-  rating, 
-  onRatingChange 
-}: { 
-  rating: number; 
+function InteractiveStarRating({
+  rating,
+  onRatingChange
+}: {
+  rating: number;
   onRatingChange: (rating: number) => void;
 }) {
   const [hoverRating, setHoverRating] = useState(0);
@@ -161,11 +161,10 @@ function InteractiveStarRating({
           className="cursor-pointer transition-transform hover:scale-110"
         >
           <Star
-            className={`w-7 h-7 ${
-              star <= (hoverRating || rating)
+            className={`w-7 h-7 ${star <= (hoverRating || rating)
                 ? 'fill-yellow-400 text-yellow-400'
                 : 'fill-zinc-200 text-zinc-200 dark:fill-zinc-700 dark:text-zinc-700'
-            }`}
+              }`}
           />
         </button>
       ))}
@@ -236,9 +235,9 @@ function getChangedFields(
 ): { field: string; oldValue: unknown; newValue: unknown }[] {
   const changes: { field: string; oldValue: unknown; newValue: unknown }[] = [];
   const allKeys = new Set([...Object.keys(oldData || {}), ...Object.keys(newData || {})]);
-  
+
   const ignoredKeys = ['id', 'createdAt', 'updatedAt', 'addedByUserId', 'bubblerId'];
-  
+
   allKeys.forEach((key) => {
     if (ignoredKeys.includes(key)) return;
     const oldVal = oldData?.[key];
@@ -247,7 +246,7 @@ function getChangedFields(
       changes.push({ field: key, oldValue: oldVal, newValue: newVal });
     }
   });
-  
+
   return changes;
 }
 
@@ -259,13 +258,13 @@ export default function WaypointPage() {
   const [logs, setLogs] = useState<WaypointLogWithUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Review form state
   const [reviewRating, setReviewRating] = useState(0);
   const [reviewComment, setReviewComment] = useState('');
   const [submittingReview, setSubmittingReview] = useState(false);
   const [deletingReviewId, setDeletingReviewId] = useState<number | null>(null);
-  
+
   // Report dialog state
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
   const [reportReason, setReportReason] = useState('');
@@ -296,22 +295,22 @@ export default function WaypointPage() {
 
   const handleSubmitReview = async () => {
     if (reviewRating === 0) return;
-    
+
     setSubmittingReview(true);
     try {
-      const res = await fetch(`/waypoints/${id}/reviews`, {
+      const res = await fetch(`/api/reviews`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rating: reviewRating, comment: reviewComment }),
+        body: JSON.stringify({ rating: reviewRating, comment: reviewComment, bubblerId: Number(id) }),
       });
-      
+
       if (!res.ok) throw new Error('Failed to submit review');
-      
+
       // Refresh waypoint data
       const waypointRes = await fetch(`/api/waypoints/${id}`);
       const data = await waypointRes.json();
       setWaypoint(data.waypoint);
-      
+
       // Reset form
       setReviewRating(0);
       setReviewComment('');
@@ -328,7 +327,7 @@ export default function WaypointPage() {
 
     setDeletingReviewId(reviewId);
     try {
-      const res = await fetch(`/waypoints/${id}/reviews?id=${reviewId}`, {
+      const res = await fetch(`/api/reviews?id=${reviewId}`, {
         method: 'DELETE',
       });
 
@@ -347,7 +346,7 @@ export default function WaypointPage() {
 
   const handleSubmitReport = async () => {
     if (!reportReason.trim()) return;
-    
+
     setSubmittingReport(true);
     try {
       const res = await fetch(`/api/waypoints/${id}/report`, {
@@ -355,9 +354,9 @@ export default function WaypointPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ reason: reportReason }),
       });
-      
+
       if (!res.ok) throw new Error('Failed to submit report');
-      
+
       setReportDialogOpen(false);
       setReportReason('');
     } catch (err) {
@@ -443,13 +442,13 @@ export default function WaypointPage() {
               {session?.user && (
                 <>
                   <DropdownMenuItem asChild className="cursor-pointer">
-                    <Link href={`/waypoints/${id}/edit`}>
+                    <Link href={`/w/${id}/edit`}>
                       <Edit3 className="w-4 h-4 mr-2" />
                       Edit Waypoint
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem 
+                  <DropdownMenuItem
                     onClick={() => setReportDialogOpen(true)}
                     className="cursor-pointer text-red-600 dark:text-red-400"
                   >
@@ -535,7 +534,7 @@ export default function WaypointPage() {
             <span>Added {new Date(waypoint.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
           </div>
           <a
-            href={`/?lat=${waypoint.latitude}&lng=${waypoint.longitude}&zoom=20`}
+            href={`/map?lat=${waypoint.latitude}&lng=${waypoint.longitude}&zoom=20`}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-1 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
@@ -548,7 +547,7 @@ export default function WaypointPage() {
         {/* Added By */}
         {waypoint.addedBy && (
           <div className="flex items-center gap-3 mb-8">
-            <Link href={`/profile/${waypoint.addedBy.handle}`}>
+            <Link href={`/u/${waypoint.addedBy.handle}`}>
               <Avatar className="w-10 h-10">
                 <AvatarImage src={waypoint.addedBy.image || ''} alt={waypoint.addedBy.displayName || ''} />
                 <AvatarFallback>
@@ -559,7 +558,7 @@ export default function WaypointPage() {
             <div className="flex flex-col">
               <div className="flex items-center gap-1.5">
                 <Link
-                  href={`/profile/${waypoint.addedBy.handle}`}
+                  href={`/u/${waypoint.addedBy.handle}`}
                   className="text-sm font-medium text-zinc-900 dark:text-zinc-100 hover:underline"
                 >
                   @{waypoint.addedBy.handle}
@@ -652,7 +651,7 @@ export default function WaypointPage() {
                 >
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
-                      <Link href={`/profile/${review.user.handle}`}>
+                      <Link href={`/u/${review.user.handle}`}>
                         <Avatar className="w-7 h-7">
                           <AvatarImage src={review.user.image || ''} alt={review.user.displayName || ''} />
                           <AvatarFallback className="text-xs">
@@ -662,7 +661,7 @@ export default function WaypointPage() {
                       </Link>
                       <div className="flex items-center gap-1.5">
                         <Link
-                          href={`/profile/${review.user.handle}`}
+                          href={`/u/${review.user.handle}`}
                           className="text-sm font-medium text-zinc-900 dark:text-zinc-100 hover:underline"
                         >
                           @{review.user.handle}
@@ -740,64 +739,94 @@ export default function WaypointPage() {
                             {actionIcons[log.action] || <RefreshCw className="w-3.5 h-3.5" />}
                           </div>
                           <div className="flex-1 min-w-0 flex items-center gap-1.5">
-                            {log.user ? (
+                            {log.user?.handle ? (
                               <Link
-                                href={`/profile/${log.user.handle}`}
+                                href={`/u/${log.user.handle}`}
                                 className="font-medium text-zinc-700 dark:text-zinc-300 hover:underline truncate"
                               >
                                 @{log.user.handle}
                               </Link>
                             ) : (
-                              <span className="text-zinc-500">Unknown</span>
+                              <span className="font-medium text-zinc-700 dark:text-zinc-300 truncate">
+                                @Deleted User
+                              </span>
                             )}
+
                             {log.user?.verified && <Verified content="Official account of a government, organization, or recognized entity." />}
                             {log.user?.moderator && <Moderator />}
                             <span className="text-zinc-400">
                               {log.action === 'CREATE' && 'added the waypoint'}
                               {log.action === 'UPDATE' && 'edited information'}
                               {log.action === 'DELETE' && 'deleted the waypoint'}
+                              {" "}(#{log.id})
                             </span>
                           </div>
                           <span className="text-xs text-zinc-400 shrink-0">
                             <RelativeTime date={log.createdAt} />
+
                           </span>
                         </button>
                       </CollapsibleTrigger>
                       <CollapsibleContent>
-                        <div className="ml-8 mt-1 mb-2 text-xs space-y-1.5">
+                        <div className="ml-9 pl-4 border-l-2 border-zinc-100 dark:border-zinc-800 my-2 space-y-3">
                           {log.action === 'CREATE' && log.newData && (
-                            <p className="text-zinc-500 dark:text-zinc-400 italic">
-                              Created waypoint &quot;{String((log.newData as Record<string, unknown>).name || 'Untitled')}&quot;
-                            </p>
+                            <div className="space-y-3">
+                              <span className="text-zinc-500 dark:text-zinc-400 font-medium uppercase tracking-wider text-[10px] block">
+                                Initial Values
+                              </span>
+                              <div className="grid gap-3">
+                                {Object.entries(log.newData as Record<string, unknown>)
+                                  .filter(([key]) => !['id', 'addedByUserId', 'createdAt', 'updatedAt', 'bubblerId'].includes(key))
+                                  .map(([key, value]) => (
+                                    <div key={key} className="text-xs group">
+                                      <span className="text-zinc-400 dark:text-zinc-500 font-medium mb-1 block">
+                                        {fieldLabels[key] || key}
+                                      </span>
+                                      <div className="bg-zinc-50 dark:bg-zinc-900/50 rounded-md p-2 border border-zinc-100 dark:border-zinc-800">
+                                        <span className="text-zinc-700 dark:text-zinc-200 font-mono text-[11px] break-all whitespace-pre-wrap leading-relaxed block">
+                                          {formatValue(value)}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  ))
+                                }
+                              </div>
+                            </div>
                           )}
                           {log.action === 'UPDATE' && changes.length > 0 && (
-                            <div className="space-y-1">
+                            <div className="space-y-3">
                               {changes.map(({ field, oldValue, newValue }) => (
-                                <div key={field} className="flex items-start gap-2">
-                                  <span className="text-zinc-500 dark:text-zinc-400 shrink-0">
-                                    {fieldLabels[field] || field}:
+                                <div key={field} className="text-xs">
+                                  <span className="text-zinc-400 dark:text-zinc-500 font-medium uppercase tracking-wider text-[10px] mb-1 block">
+                                    {fieldLabels[field] || field}
                                   </span>
-                                  <div className="flex items-center gap-1.5 min-w-0">
-                                    <span className="text-red-500/70 line-through truncate max-w-[120px]">
-                                      {formatValue(oldValue)}
-                                    </span>
-                                    <span className="text-zinc-400">→</span>
-                                    <span className="text-green-600 dark:text-green-400 truncate max-w-[120px]">
-                                      {formatValue(newValue)}
-                                    </span>
+                                  <div className="flex flex-col sm:flex-row sm:items-start gap-2 bg-zinc-50 dark:bg-zinc-900/50 rounded-md p-2 border border-zinc-100 dark:border-zinc-800">
+                                    <div className="flex-1 min-w-0">
+                                      <span className="text-red-500/70 line-through decoration-red-500/30 block font-mono bg-red-50 dark:bg-red-900/10 px-1.5 py-0.5 rounded break-all whitespace-pre-wrap text-[11px] leading-relaxed">
+                                        {formatValue(oldValue)}
+                                      </span>
+                                    </div>
+                                    <ArrowRight className="w-3.5 h-3.5 text-zinc-300 dark:text-zinc-600 shrink-0 mt-1 hidden sm:block" />
+                                    <div className="sm:hidden text-center text-zinc-300 text-[10px]">↓</div>
+                                    <div className="flex-1 min-w-0">
+                                      <span className="text-zinc-700 dark:text-zinc-200 block font-medium font-mono bg-green-50 dark:bg-green-900/10 px-1.5 py-0.5 rounded break-all whitespace-pre-wrap text-[11px] leading-relaxed">
+                                        {formatValue(newValue)}
+                                      </span>
+                                    </div>
                                   </div>
                                 </div>
                               ))}
                             </div>
                           )}
                           {log.action === 'DELETE' && (
-                            <p className="text-zinc-500 dark:text-zinc-400 italic">
-                              Waypoint was deleted
-                            </p>
+                            <div className="flex items-center gap-2 text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/10 p-2 rounded-md border border-red-100 dark:border-red-900/20">
+                              <Trash2 className="w-3 h-3" />
+                              <span className="font-medium">Waypoint was permanently deleted</span>
+                            </div>
                           )}
                           {log.action === 'UPDATE' && changes.length === 0 && (
-                            <p className="text-zinc-500 dark:text-zinc-400 italic">
-                              No changes have been logged.
+                            <p className="text-xs text-zinc-400 italic pl-1">
+                              No specific field changes recorded
                             </p>
                           )}
                         </div>

@@ -108,7 +108,7 @@ export default async function ProfilePage({ params }: ProfilePageParams) {
                                 return (
                                     <Link
                                         key={`bubbler-${bubbler.id}`}
-                                        href={`/waypoints/${bubbler.id}`}
+                                        href={`/w/${bubbler.id}`}
                                         className="group flex items-center justify-between p-4 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors"
                                     >
                                         <div className="flex items-center gap-3">
@@ -140,7 +140,7 @@ export default async function ProfilePage({ params }: ProfilePageParams) {
                                 return (
                                     <Link
                                         key={`review-${review.id}`}
-                                        href={`/waypoints/${review.bubbler.id}`}
+                                        href={`/w/${review.bubbler.id}`}
                                         className="group flex items-center justify-between p-4 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors"
                                     >
                                         <div className="flex items-center gap-3">
@@ -172,7 +172,7 @@ export default async function ProfilePage({ params }: ProfilePageParams) {
                                 return (
                                     <Link
                                         key={`log-${log.id}`}
-                                        href={`/waypoints/${log.bubbler.id}`}
+                                        href={`/w/${log.bubbler.id}`}
                                         className="group flex items-center justify-between p-4 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors"
                                     >
                                         <div className="flex items-center gap-3">

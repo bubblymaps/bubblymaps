@@ -37,11 +37,6 @@ export function SearchBar({ waypoints = [], onSelect }: SearchBarProps) {
       return;
     }
 
-    console.log(`[SearchBar] Searching for: "${debouncedValue}" in ${waypoints.length} waypoints`);
-    if (waypoints.length > 0) {
-       console.log("[SearchBar] Sample item:", waypoints[0]);
-    }
-
     const search = debouncedValue.toLowerCase();
     const filtered = waypoints.filter(w => {
       if (!w) return false;
@@ -50,7 +45,6 @@ export function SearchBar({ waypoints = [], onSelect }: SearchBarProps) {
       return name.includes(search) || description.includes(search);
     }).slice(0, 5);
 
-    console.log(`[SearchBar] Found ${filtered.length} matches`);
     setResults(filtered);
   }, [debouncedValue, waypoints]);
 
@@ -92,7 +86,7 @@ export function SearchBar({ waypoints = [], onSelect }: SearchBarProps) {
               setShowResults(true);
             }}
             onFocus={() => setShowResults(true)}
-            className="w-full bg-transparent outline-none text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 text-sm pr-8 overflow-x-auto whitespace-nowrap transition-all duration-200"
+            className="pr-8 overflow-x-auto whitespace-nowrap border-none shadow-none focus:ring-0 hover:shadow-none bg-transparent p-0 h-full w-full rounded-none outline-none"
             placeholder={`Search ${waypoints.length} bubblers...`}
             aria-label="Search"
             style={{ minWidth: 0 }}

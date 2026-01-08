@@ -884,7 +884,7 @@ export default function PrivacyPage() {
                     </section>
                     <div className="mt-8 flex justify-center gap-4">
                         <Button variant="outline" className="cursor-pointer bg-transparent" asChild>
-                            <a href="/terms">Read the Terms of Service</a>
+                            <a href="/legal/terms">Read the Terms of Service</a>
                         </Button>
 
                     </div>

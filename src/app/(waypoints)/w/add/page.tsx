@@ -236,7 +236,7 @@ export default function AddWaypointPage() {
       
       // Redirect to the new waypoint after a short delay
       setTimeout(() => {
-        window.location.href = `/waypoints/${result.id}`
+        window.location.href = `/w/${result.id}`
       }, 1500)
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : String(err);

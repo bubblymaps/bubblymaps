@@ -596,7 +596,7 @@ export default function TermsPage() {
 
                 <div className="mt-8 flex justify-center gap-4">
                     <Button variant="outline" className="cursor-pointer bg-transparent" asChild>
-                        <a href="/privacy">Read the Privacy Policy</a>
+                        <a href="/legal/privacy">Read the Privacy Policy</a>
                     </Button>
 
                 </div>

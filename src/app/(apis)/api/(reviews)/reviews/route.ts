@@ -5,52 +5,117 @@ import { awardXP } from "@/server/xp/exp";
 
 export async function GET(req: NextRequest) {
   try {
+    // Get params
     const url = new URL(req.url);
     const userIdParam = url.searchParams.get("userId");
     const bubblerIdParam = url.searchParams.get("bubblerId");
+
     let reviews;
 
+    // ?userId
     if (userIdParam) {
-      // Fetch reviews by user id (string)
       reviews = await Reviews.byUser(userIdParam);
-    } else if (bubblerIdParam) {
-      const bubblerId = Number(bubblerIdParam);
-      reviews = await Reviews.byBubbler(bubblerId);
-    } else {
-      reviews = await Reviews.all();
     }
 
-    return NextResponse.json({ reviews });
-  } catch (err: unknown) {
-    const errorMessage = err instanceof Error ? err.message : "Failed to fetch reviews";
-    console.error(err);
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
+    // ?bubblerId
+    else if (bubblerIdParam) {
+      reviews = await Reviews.byBubbler(Number(bubblerIdParam));
+    }
+
+    // If none
+    else {
+
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Please query using either userId or bubblerId"
+        },
+        { status: 400 }
+      );
+
+    }
+
+    // Return reviews
+    return NextResponse.json(
+      {
+        success: true,
+        reviews
+      },
+      { status: 200 }
+    );
+
+  } catch (err: any) {
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: err.message
+      },
+      { status: 500 }
+    );
+
   }
 }
 
 export async function POST(req: NextRequest) {
+
+  // Check session
+  const session = await auth();
+
+  if (!session) {
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Unauthorized"
+      },
+      { status: 401 }
+    );
+
+  }
+
   try {
-    const session = await auth();
-    const userId = session?.user?.id;
 
-    if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const { rating, comment, bubblerId } = await req.json();
+    const userId = session.user.id;
 
-    const body = await req.json();
-    const { bubblerId, rating, comment } = body;
+    // Validate input
+    if (!bubblerId || !rating) {
 
-    if (!bubblerId || !rating) return NextResponse.json({ error: "Missing bubblerId or rating" }, { status: 400 });
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Missing required fields"
+        },
+        { status: 400 }
+      );
+
+    }
 
     const reviewData: ReviewData = { bubblerId, rating, comment, userId };
     const newReview = await Reviews.add(reviewData);
 
-    // Award XP for adding a review
+    // Award XP
     await awardXP(userId, 'ADD_REVIEW');
 
-    return NextResponse.json({ review: newReview }, { status: 201 });
-  } catch (err: unknown) {
-    const errorMessage = err instanceof Error ? err.message : "Failed to add review";
-    console.error(err);
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: true,
+        review: newReview
+      },
+      { status: 200 }
+    );
+
+  } catch (err: any) {
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: err.message
+      },
+      { status: 500 }
+    );
+
   }
 }
 
@@ -83,7 +148,6 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    // Allow moderators to delete any review
     if (session.user.moderator) {
       const deletedReview = await Reviews.delete(reviewId)
       return NextResponse.json({ review: deletedReview })
