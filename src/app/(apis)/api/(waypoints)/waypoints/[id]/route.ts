@@ -74,21 +74,6 @@ export async function PATCH(
     params: Promise<{ id: string }>
   }
 ) {
-  const { id: idStr } = await context.params;
-  const id = parseInt(idStr, 10);
-
-  // Invalid ID
-  if (isNaN(id)) {
-
-    return NextResponse.json(
-      {
-        success: false,
-        error: "Invalid waypoint ID"
-      },
-      { status: 400 }
-    );
-
-  }
 
   // Auth
   const session = await auth();
@@ -115,15 +100,31 @@ export async function PATCH(
 
     if (!session.user.moderator && !allowed) {
 
-        return NextResponse.json(
-          {
-            success: false,
-            error: `Insufficient XP. Required: ${XP_REQUIRED.EDIT_WAYPOINT}`
-          },
-          { status: 403 }
-        );
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Insufficient XP. Required: ${XP_REQUIRED.EDIT_WAYPOINT}`
+        },
+        { status: 403 }
+      );
 
     }
+  }
+
+  const { id: idStr } = await context.params;
+  const id = parseInt(idStr, 10);
+
+  // Invalid ID
+  if (isNaN(id)) {
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Invalid waypoint ID"
+      },
+      { status: 400 }
+    );
+
   }
 
   try {
@@ -158,6 +159,71 @@ export async function PATCH(
       {
         success: true,
         updatedWaypoint
+      },
+      { status: 200 }
+    );
+
+  } catch (err: any) {
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: err.message
+      },
+      { status: 400 }
+    );
+
+  }
+}
+
+export async function DELETE(
+  req: NextRequest,
+  context: {
+    params: Promise<{ id: string }>
+  }
+) {
+
+  // Auth
+  const apiToken = req.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
+  const expectedToken = process.env.API_TOKEN || process.env.API_KEY;
+  const hasApiToken = !!apiToken && !!expectedToken && apiToken === expectedToken;
+
+  if (!hasApiToken) {
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Unauthorized"
+      },
+      { status: 401 }
+    );
+
+  }
+
+  const { id: idStr } = await context.params;
+  const id = parseInt(idStr, 10);
+
+  // Invalid ID
+  if (isNaN(id)) {
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Invalid waypoint ID"
+      },
+      { status: 400 }
+    );
+
+  }
+
+  try {
+
+    const deletedWp = await Waypoints.delete(id, 'api');
+
+    return NextResponse.json(
+      {
+        success: true,
+        result: deletedWp
       },
       { status: 200 }
     );

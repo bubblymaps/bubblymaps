@@ -161,14 +161,7 @@ export class Waypoints {
             const oldBubbler = await this.get(id);
             const deletedBubbler = await db.bubbler.delete({ where: { id } });
 
-            // Try to log the deletion, but do not fail the whole operation if logging errors occur.
-            try {
-                await this.logChange(id, userId ?? oldBubbler.addedByUserId, "DELETE", oldBubbler, null);
-            } catch (logErr) {
-                // Log the error server-side for later inspection, but continue.
-                // eslint-disable-next-line no-console
-                console.error(`Waypoints.delete: failed to write bubblerLog for id=${id}:`, logErr);
-            }
+            // Log the deletion here
 
             return deletedBubbler;
         } catch (err: unknown) {

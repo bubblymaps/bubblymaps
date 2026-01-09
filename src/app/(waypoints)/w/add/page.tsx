@@ -9,6 +9,8 @@ import { toast } from "sonner"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 
 import { Footer } from "@/components/footer"
+import { isValidImageUrl } from "@/lib/utils"
+import Header from "@/components/header"
 
 export default function AddWaypointPage() {
   const { theme } = useTheme()
@@ -25,19 +27,6 @@ export default function AddWaypointPage() {
   const [imageUrlError, setImageUrlError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // imageUrl validation helper
-  function isValidImageUrl(url: string): boolean {
-    try {
-      const parsed = new URL(url)
-      // Accept only http and https schemes
-      if (!["http:", "https:"].includes(parsed.protocol)) return false
-      // Only allow common image file extensions (add as necessary)
-      if (!/\.(jpe?g|png|gif|webp)$/i.test(parsed.pathname)) return false
-      return true
-    } catch {
-      return false
-    }
-  }
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [agreeToTerms, setAgreeToTerms] = useState(false)
 
@@ -252,12 +241,12 @@ export default function AddWaypointPage() {
   return (
     <>
     <div className="min-h-screen bg-background">
+      <Header />
       <main className="mx-auto max-w-4xl p-6">
-        <h1 className="text-2xl font-bold mb-4">Add a bubbler</h1>
-      <p className="text-red-500">This page has been deprecated, may not function as intended.</p>
 
         <div className="p-6">
           <div className="mb-6">
+            <h1 className="text-2xl font-bold mb-4">Add a bubbler</h1>
             <div className="flex items-center gap-3">
               <div className={step === 1 ? "px-3 py-1 bg-primary text-primary-foreground rounded font-medium" : "px-3 py-1 border rounded text-muted-foreground"}>1</div>
               <div className="flex-1">
@@ -281,7 +270,6 @@ export default function AddWaypointPage() {
             {step === 1 && (
               <div className="space-y-4">
                 <div>
-                  <h3 className="text-lg font-semibold mb-3">Basic Information</h3>
                   <div className="space-y-3">
                     <label className="block">
                       <div className="text-sm font-medium mb-1">
@@ -296,7 +284,7 @@ export default function AddWaypointPage() {
                       />
                     </label>
 
-                    <label className="block">
+                    <label className="block"> 
                       <div className="text-sm font-medium mb-1">Description</div>
                       <textarea 
                         value={description} 
@@ -305,7 +293,6 @@ export default function AddWaypointPage() {
                         className="w-full p-2.5 border rounded-lg bg-background transition" 
                         rows={4} 
                       />
-                      <div className="text-xs text-muted-foreground mt-1">Optional but helpful for others</div>
                     </label>
                   </div>
                 </div>
@@ -536,7 +523,7 @@ export default function AddWaypointPage() {
                         • Ensure the location is accurate and precise<br/>
                         • The bubbler will be reviewed before appearing on the map<br/>
                         • You'll be redirected to the bubbler page after submission <br />
-                        • By submitting, you agree to our <a href="/terms" className="underline">terms of service</a> and <a href="/privacy" className="underline">privacy policy</a>.
+                        • By submitting, you agree to our <a href="/legal/terms" className="underline">terms of service</a> and <a href="/legal/privacy" className="underline">privacy policy</a>.
                       </div>
                     </div>
                   </div>
