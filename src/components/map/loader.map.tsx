@@ -14,7 +14,7 @@ interface MapViewProps {
 }
 
 export default function MapBox({
-  styleURL = "https://tiles.linus.id.au/styles/light/style.json",
+  styleURL = "https://tiles.bubblymaps.org/styles/light/style.json",
   center = [153.03, -27.58],
   zoom = 10,
   showControls = true,

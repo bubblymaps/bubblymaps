@@ -52,8 +52,8 @@ export default function AddWaypointPage() {
     const initLng = lng ?? DEFAULT.lng
 
     const primaryStyle = theme === "dark"
-      ? "https://tiles.linus.id.au/styles/dark/style.json"
-      : "https://tiles.linus.id.au/styles/light/style.json"
+      ? "https://tiles.bubblymaps.org/styles/dark/style.json"
+      : "https://tiles.bubblymaps.org/styles/light/style.json"
     const fallbackStyle = "https://demotiles.maplibre.org/style.json"
 
     mapInstance.current = new maplibregl.Map({
@@ -137,8 +137,8 @@ export default function AddWaypointPage() {
     if (previewMapInstance.current) return // already initialized
 
     const previewStyle = theme === "dark"
-      ? "https://tiles.linus.id.au/styles/dark/style.json"
-      : "https://tiles.linus.id.au/styles/light/style.json"
+      ? "https://tiles.bubblymaps.org/styles/dark/style.json"
+      : "https://tiles.bubblymaps.org/styles/light/style.json"
 
     previewMapInstance.current = new maplibregl.Map({
       container: previewMapContainer.current,
