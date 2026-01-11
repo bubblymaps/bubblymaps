@@ -42,8 +42,8 @@ function MapPage() {
 
   // Only set mapTheme after component is mounted to prevent style thrashing
   const mapTheme = mounted && theme === "dark"
-    ? "https://tiles.linus.id.au/styles/dark/style.json"
-    : "https://tiles.linus.id.au/styles/light/style.json";
+    ? "https://tiles.bubblymaps.org/styles/dark/style.json"
+    : "https://tiles.bubblymaps.org/styles/light/style.json";
 
   useEffect(() => setMounted(true), []);
 
