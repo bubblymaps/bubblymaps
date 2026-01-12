@@ -9,9 +9,14 @@ const config = {
     output: "standalone",
     logging: {
         fetches: {
-            fullUrl: false,
+            fullUrl: true,
         },
     },
+    allowedDevOrigins: [
+        "https://bubblymaps.org",
+        "https://beta.bubblymaps.org",
+        "https://devtest.bubblymaps.org",
+    ]
 };
 
 export default config;
