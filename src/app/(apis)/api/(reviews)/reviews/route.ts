@@ -39,6 +39,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(
       {
         success: true,
+        license: 'CC BY-NC 4.0',
         reviews
       },
       { status: 200 }
