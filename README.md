@@ -7,7 +7,7 @@
 [![PRs](https://img.shields.io/github/issues-pr/bubblymaps/bubblymaps?color=orange)](https://github.com/bubblymaps/bubblymaps/pulls)
 [![Stars](https://img.shields.io/github/stars/bubblymaps/bubblymaps?color=yellow)](https://github.com/bubblymaps/bubblymaps/stargazers)
 
-A maps app for locating public water fountains locations. Access the official website [here](https://bubblymaps.org)!
+A framework for mapping water fountain locations.
 
 ## Documentation
 
