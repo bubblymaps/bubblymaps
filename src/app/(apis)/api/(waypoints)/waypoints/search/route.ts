@@ -21,6 +21,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json(
             { 
                 success: true,
+                license: 'CC BY-NC 4.0',
                 waypoints 
             },
             { status: 200 }

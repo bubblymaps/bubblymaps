@@ -47,6 +47,7 @@ export async function GET(
     return NextResponse.json(
       {
         success: true,
+        license: 'CC BY-NC 4.0',
         waypoint,
         logs: waypointLogs
       },
