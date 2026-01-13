@@ -9,26 +9,14 @@
 
 A maps app for locating public water fountains locations. Access the official website [here](https://bubblymaps.org)!
 
-## Self hosting (Docker)
+## Documentation
 
-```bash
-git clone https://github.com/bubblymaps/bubblymaps
-cd bubblymaps
-```
-
-2. Edit `docker-compose.yml` with your environment variables.
-3. Start using docker:
-
-```bash
-docker compose up --build
-```
-
-Access Bubbly Maps at ``http://0.0.0.0:2000``.
+See https://docs.bubblymaps.org
 
 ## Contributing
 
-See https://docs.bubblymaps.org for APIs and dev environment setup.
+See [CONTRIBUTING](CONTRIBUTING.md)
 
 ## License
 
-See [LICENSE](LICENSE) for details.
+See [LICENSE](LICENSE)
