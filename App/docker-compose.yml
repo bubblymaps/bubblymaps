@@ -1,0 +1,18 @@
+version: "3.9"
+
+services:
+  bubbly:
+    image: ghcr.io/linuskang/bubbly/bubbly:latest
+    container_name: bubbly
+    ports:
+      - "3400:3400"
+    environment:
+      DATABASE_URL: "mysql://user:password@localhost:3306/bubbly" # change to your database creds
+      NEXTAUTH_SECRET: "0KprtXWjpbLzXAnNR+BUREhglOjCUvnjIMki5Uq+JAs=" # change to whatever you want.
+      NEXTAUTH_URL: "https://your_app_url_to_access_bubbly"
+      RESEND_API_KEY: "your_resend_api_key" # https://resend.com
+      API_KEY: "change_this_to_whatever_you_want"
+      OLLAMA_API_URL: "https://agent.linus.id.au" # use my prebuilt agent ai server
+      DISCORD_WEBHOOK_URL: "https://your_discord_webhook" # https://discord.com/developers
+      SEQ_URL: "https://your_seq_logging_server" # https://datalust.co
+    restart: unless-stopped
