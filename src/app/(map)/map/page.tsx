@@ -39,6 +39,7 @@ function MapPage() {
   const [hasTeleported, setHasTeleported] = useState(false);
   const [waypoints, setWaypoints] = useState<Waypoint[]>([]);
   const [activePopup, setActivePopup] = useState<maplibregl.Popup | null>(null);
+  const [boundingBoxes, setBoundingBoxes] = useState<any[]>([]);
 
   // Only set mapTheme after component is mounted to prevent style thrashing
   const mapTheme = mounted && theme === "dark"
@@ -104,6 +105,121 @@ function MapPage() {
 
   useEffect(() => {
     if (!map) return
+
+    const loadBoundingBoxes = async () => {
+      try {
+        console.log("[ Bounding Boxes ] Loading bounding boxes...");
+        const boundingBoxesRes = await fetch("/api/boundingboxes");
+        if (boundingBoxesRes.ok) {
+          const boundingBoxesData = await boundingBoxesRes.json();
+          console.log(`[ Bounding Boxes ] Loaded ${boundingBoxesData.boundingBoxes?.length} bounding boxes`);
+          setBoundingBoxes(boundingBoxesData.boundingBoxes || []);
+
+          // Add bounding box layers
+          boundingBoxesData.boundingBoxes?.forEach((box: any) => {
+            console.log(`[ Bounding Boxes ] Adding bounding box: ${box.name} (${box.color})`);
+            const boxId = `bbox-${box.id}`;
+
+            // Create GeoJSON for this bounding box
+            const boxGeoJson: GeoJSON.FeatureCollection = {
+              type: "FeatureCollection",
+              features: [
+                {
+                  type: "Feature",
+                  geometry: {
+                    type: "Polygon",
+                    coordinates: [box.coordinates]
+                  },
+                  properties: {
+                    id: box.id,
+                    name: box.name,
+                    description: box.description,
+                    color: box.color,
+                    ...box.properties
+                  }
+                }
+              ]
+            };
+
+            // Add or update source
+            if (map.getSource(boxId)) {
+              (map.getSource(boxId) as maplibregl.GeoJSONSource).setData(boxGeoJson);
+            } else {
+              map.addSource(boxId, {
+                type: "geojson",
+                data: boxGeoJson
+              });
+            }
+
+            // Add fill layer
+            if (!map.getLayer(`${boxId}-fill`)) {
+              map.addLayer({
+                id: `${boxId}-fill`,
+                type: "fill",
+                source: boxId,
+                paint: {
+                  "fill-color": box.color,
+                  "fill-opacity": 0.05
+                }
+              });
+            }
+
+            // Add stroke layer
+            if (!map.getLayer(`${boxId}-stroke`)) {
+              map.addLayer({
+                id: `${boxId}-stroke`,
+                type: "line",
+                source: boxId,
+                paint: {
+                  "line-color": box.color,
+                  "line-width": 3
+                }
+              });
+            }
+          });
+
+          // Add hover functionality for each bounding box
+          boundingBoxesData.boundingBoxes?.forEach((box: any) => {
+            const boxId = `bbox-${box.id}`;
+            let boxPopup: maplibregl.Popup | null = null;
+            let isHoveringBox = false;
+
+            map.on("mouseenter", `${boxId}-fill`, (e) => {
+              map.getCanvas().style.cursor = "pointer";
+              isHoveringBox = true;
+
+              boxPopup = new maplibregl.Popup({
+                closeButton: false,
+                closeOnClick: false,
+                offset: [0, -10]
+              })
+                .setLngLat(e.lngLat)
+                .setHTML(`<div style='background: ${box.color}E6; color: white; padding: 8px 12px; border-radius: 4px; font-weight: bold; max-width: 200px;'><div style='font-size: 14px; margin-bottom: 4px;'>${box.name}</div>${box.description ? `<div style='font-size: 12px; font-weight: normal; opacity: 0.9;'>${box.description}</div>` : ''}</div>`)
+                .addTo(map);
+            });
+
+            map.on("mousemove", `${boxId}-fill`, (e) => {
+              if (boxPopup && isHoveringBox) {
+                boxPopup.setLngLat(e.lngLat);
+              }
+            });
+
+            map.on("mouseleave", `${boxId}-fill`, () => {
+              map.getCanvas().style.cursor = "";
+              isHoveringBox = false;
+              if (boxPopup) {
+                boxPopup.remove();
+                boxPopup = null;
+              }
+            });
+          });
+        } else {
+          console.error("[ Bounding Boxes ] Failed to fetch:", boundingBoxesRes.status);
+        }
+      } catch (error) {
+        console.error("[ Bounding Boxes ] Error loading bounding boxes:", error);
+      }
+    };
 
     const loadWaypoints = async () => {
 
@@ -293,16 +409,146 @@ function MapPage() {
         console.log("[ Loader ] Waypoints loaded successfully")
         toast.success("Waypoints loaded successfully", { id: "load-waypoints" })
 
-      } catch (err: unknown) {
-        const errorMessage = err instanceof Error ? err.message : "Unknown error";
-        console.error(err)
-        toast.error(`Failed to load waypoints: ${errorMessage}`, { id: "load-waypoints" })
+        // Load bounding boxes
+        try {
+          console.log("[ Bounding Boxes ] Loading bounding boxes...");
+          const boundingBoxesRes = await fetch("/api/boundingboxes");
+          if (boundingBoxesRes.ok) {
+            const boundingBoxesData = await boundingBoxesRes.json();
+            console.log(`[ Bounding Boxes ] Loaded ${boundingBoxesData.boundingBoxes?.length} bounding boxes`);
+            setBoundingBoxes(boundingBoxesData.boundingBoxes || []);
+
+            // Add bounding box layers
+            boundingBoxesData.boundingBoxes?.forEach((box: any) => {
+              console.log(`[ Bounding Boxes ] Adding bounding box: ${box.name} (${box.color})`);
+              const boxId = `bbox-${box.id}`;
+
+              // Create GeoJSON for this bounding box
+              const boxGeoJson: GeoJSON.FeatureCollection = {
+                type: "FeatureCollection",
+                features: [
+                  {
+                    type: "Feature",
+                    geometry: { type: "Polygon", coordinates: box.coordinates },
+                    properties: { ...box }
+                  }
+                ]
+              };
+
+              if (!map.getSource(boxId)) {
+                map.addSource(boxId, { type: "geojson", data: boxGeoJson });
+              }
+
+              if (!map.getLayer(`${boxId}-fill`)) {
+                map.addLayer({
+                  id: `${boxId}-fill`,
+                  type: "fill",
+                  source: boxId,
+                  paint: {
+                    "fill-color": box.color,
+                    "fill-opacity": 0.05,
+                  },
+                });
+              }
+
+              if (!map.getLayer(`${boxId}-stroke`)) {
+                map.addLayer({
+                  id: `${boxId}-stroke`,
+                  type: "line",
+                  source: boxId,
+                  paint: {
+                    "line-color": box.color,
+                    "line-width": 2,
+                  },
+                });
+              }
+
+
+              // Add or update source
+              if (map.getSource(boxId)) {
+                (map.getSource(boxId) as maplibregl.GeoJSONSource).setData(boxGeoJson);
+              } else {
+                map.addSource(boxId, {
+                  type: "geojson",
+                  data: boxGeoJson
+                });
+              }
+
+              // Add fill layer
+              if (!map.getLayer(`${boxId}-fill`)) {
+                map.addLayer({
+                  id: `${boxId}-fill`,
+                  type: "fill",
+                  source: boxId,
+                  paint: {
+                    "fill-color": box.color,
+                    "fill-opacity": 0.05
+                  }
+                });
+              }
+
+              // Add stroke layer
+              if (!map.getLayer(`${boxId}-stroke`)) {
+                map.addLayer({
+                  id: `${boxId}-stroke`,
+                  type: "line",
+                  source: boxId,
+                  paint: {
+                    "line-color": box.color,
+                    "line-width": 3
+                  }
+                });
+              }
+            });
+            // Add hover functionality for each bounding box
+            boundingBoxesData.boundingBoxes?.forEach((box: any) => {
+              const boxId = `bbox-${box.id}`;
+              let boxPopup: maplibregl.Popup | null = null;
+              let isHoveringBox = false;
+
+              map.on("mouseenter", `${boxId}-fill`, (e) => {
+                map.getCanvas().style.cursor = "pointer";
+                isHoveringBox = true;
+
+                boxPopup = new maplibregl.Popup({
+                  closeButton: false,
+                  closeOnClick: false,
+                  offset: [0, -10]
+                })
+                  .setLngLat(e.lngLat)
+                  .setHTML(`<div style='background: ${box.color}E6; color: white; padding: 8px 12px; border-radius: 4px; font-weight: bold; max-width: 200px;'><div style='font-size: 14px; margin-bottom: 4px;'>${box.name}</div>${box.description ? `<div style='font-size: 12px; font-weight: normal; opacity: 0.9;'>${box.description}</div>` : ''}</div>`)
+                  .addTo(map);
+              });
+
+              map.on("mousemove", `${boxId}-fill`, (e) => {
+                if (boxPopup && isHoveringBox) {
+                  boxPopup.setLngLat(e.lngLat);
+                }
+              });
+
+              map.on("mouseleave", `${boxId}-fill`, () => {
+                map.getCanvas().style.cursor = "";
+                isHoveringBox = false;
+                if (boxPopup) {
+                  boxPopup.remove();
+                  boxPopup = null;
+                }
+              });
+            });
+          }
+        } catch (error) {
+          console.error("Error loading bounding boxes:", error);
+        }
+      } catch (error) {
+        console.error("[ Loader ] Error loading waypoints:", error);
+        toast.error("Failed to load waypoints", { id: "load-waypoints" });
       }
     }
 
     const handleStyleLoad = () => {
       console.log("[ Loader ] Style loaded event fired")
       loadWaypoints()
+      loadBoundingBoxes()
     }
 
     // Use 'on' instead of 'once' to handle theme changes
@@ -310,6 +556,7 @@ function MapPage() {
 
     if (map.isStyleLoaded()) {
       loadWaypoints()
+      loadBoundingBoxes()
     }
 
     return () => {
@@ -349,7 +596,7 @@ function MapPage() {
       </div>
 
       <div className="absolute top-4 left-4 z-20">
-        <SearchBar 
+        <SearchBar
           waypoints={waypoints}
           onSelect={(waypoint) => {
             if (map) {

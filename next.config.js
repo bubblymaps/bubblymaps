@@ -15,7 +15,7 @@ const config = {
     allowedDevOrigins: [
         "https://bubblymaps.org",
         "https://beta.bubblymaps.org",
-        "https://devtest.bubblymaps.org",
+        "https://devtest.lkang.au",
     ]
 };
 

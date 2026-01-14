@@ -1,5 +1,6 @@
 'use client';
 
+import 'maplibre-gl/dist/maplibre-gl.css';
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -27,7 +28,8 @@ import {
   getReviews, deleteReview,
   getReports, resolveReport,
   getStats, getRecentContributions,
-  getLogs
+  getLogs,
+  getBoundingBoxes, createBoundingBox, updateBoundingBox, deleteBoundingBox
 } from './actions';
 import { Footer } from '@/components/footer';
 
@@ -48,6 +50,7 @@ export default function Dashboard({ user }: { user: any }) {
             <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="reviews">Reviews</TabsTrigger>
             <TabsTrigger value="reports">Reports</TabsTrigger>
+            <TabsTrigger value="bounding-boxes">Bounding Boxes</TabsTrigger>
             <TabsTrigger value="logs">Logs</TabsTrigger>
           </TabsList>
           <TabsContent value="overview"><OverviewTab /></TabsContent>
@@ -55,6 +58,7 @@ export default function Dashboard({ user }: { user: any }) {
           <TabsContent value="users"><UsersTab /></TabsContent>
           <TabsContent value="reviews"><ReviewsTab /></TabsContent>
           <TabsContent value="reports"><ReportsTab /></TabsContent>
+          <TabsContent value="bounding-boxes"><BoundingBoxesTab /></TabsContent>
           <TabsContent value="logs"><LogsTab /></TabsContent>
         </Tabs>
       </div>
@@ -812,3 +816,376 @@ function LogsTab() {
     </div>
   );
 }
+
+function BoundingBoxesTab() {
+  const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState<any>(null);
+  const [isCreating, setIsCreating] = useState(false);
+
+  const load = async () => {
+    setLoading(true);
+    try {
+      const res = await getBoundingBoxes();
+      setData(res);
+    } catch (e) {
+      toast.error('Failed to load bounding boxes');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const handleDelete = async (id: number) => {
+    if (!confirm('Are you sure you want to delete this bounding box?')) return;
+    try {
+      await deleteBoundingBox(id);
+      toast.success('Bounding box deleted');
+      load();
+    } catch (e) {
+      toast.error('Failed to delete');
+    }
+  };
+
+  const handleSave = async (formData: any) => {
+    try {
+      if (editing) {
+        await updateBoundingBox(editing.id, formData);
+        toast.success('Bounding box updated');
+      } else {
+        await createBoundingBox(formData);
+        toast.success('Bounding box created');
+      }
+      setEditing(null);
+      setIsCreating(false);
+      load();
+    } catch (e: any) {
+      toast.error(e.message || 'Failed to save');
+    }
+  };
+
+  return (
+    <div>
+      <div className="flex justify-between mb-4 gap-4">
+        <h2 className="text-2xl font-bold">Bounding Boxes</h2>
+        <div className="flex gap-2">
+          <Button onClick={load} variant="outline" size="sm"><RefreshCw className="mr-2 h-4 w-4" /> Refresh</Button>
+          <Button onClick={() => setIsCreating(true)}><Plus className="mr-2 h-4 w-4" /> Add Bounding Box</Button>
+        </div>
+      </div>
+      
+      {loading ? <Loader2 className="animate-spin" /> : (
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>ID</TableHead>
+                <TableHead>Name</TableHead>
+                <TableHead>Description</TableHead>
+                <TableHead>Color</TableHead>
+                <TableHead>Points</TableHead>
+                <TableHead>Active</TableHead>
+                <TableHead>Created At</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {data.map((item) => (
+                <TableRow key={item.id}>
+                  <TableCell>{item.id}</TableCell>
+                  <TableCell className="max-w-[150px] truncate" title={item.name}>{item.name}</TableCell>
+                  <TableCell className="max-w-[200px] truncate" title={item.description || ''}>{item.description || 'N/A'}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded border" style={{ backgroundColor: item.color }}></div>
+                      {item.color}
+                    </div>
+                  </TableCell>
+                  <TableCell>{Array.isArray(item.coordinates) && Array.isArray(item.coordinates[0]) ? item.coordinates[0].length : 0} points</TableCell>
+                  <TableCell>{item.active ? <Check className="text-green-500 h-4 w-4" /> : <X className="text-red-500 h-4 w-4" />}</TableCell>
+                  <TableCell className="whitespace-nowrap">{new Date(item.createdAt).toLocaleDateString()}</TableCell>
+                  <TableCell>
+                    <div className="flex gap-2">
+                      <Button size="icon" variant="ghost" onClick={() => setEditing(item)}><Edit className="h-4 w-4" /></Button>
+                      <Button size="icon" variant="ghost" className="text-red-500" onClick={() => handleDelete(item.id)}><Trash2 className="h-4 w-4" /></Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
+
+      <Dialog open={!!editing || isCreating} onOpenChange={(open) => { if (!open) { setEditing(null); setIsCreating(false); } }}>
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{editing ? 'Edit Bounding Box' : 'Create Bounding Box'}</DialogTitle>
+          </DialogHeader>
+          <BoundingBoxForm initialData={editing} onSubmit={handleSave} />
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+function BoundingBoxForm({ initialData, onSubmit }: { initialData?: any, onSubmit: (data: any) => void }) {
+  const [formData, setFormData] = useState(initialData || {
+    name: '', description: '', color: '#ff8c00', coordinates: [[]], active: true
+  });
+  const [mapPoints, setMapPoints] = useState<[number, number][]>(
+    initialData?.coordinates?.[0]?.map((coord: any) => [coord[1], coord[0]]) || []
+  );
+  const [map, setMap] = useState<any>(null);
+  const [markers, setMarkers] = useState<any[]>([]);
+  const [mapLib, setMapLib] = useState<any>(null);
+
+  // Initialize map once
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    let mapInstance: any = null;
+
+    // Dynamically import maplibre-gl
+    import('maplibre-gl').then((maplibregl) => {
+      setMapLib(maplibregl);
+      
+      mapInstance = new maplibregl.Map({
+        container: 'bbox-map',
+        style: 'https://tiles.bubblymaps.org/styles/light/style.json',
+        center: mapPoints.length > 0 && mapPoints[0] ? [mapPoints[0][1], mapPoints[0][0]] : [-74.5, 40],
+        zoom: mapPoints.length > 0 ? 10 : 9
+      });
+
+      mapInstance.on('load', () => {
+        // Add source and layer for the polygon
+        mapInstance.addSource('bbox-polygon', {
+          type: 'geojson',
+          data: {
+            type: 'Feature',
+            properties: {},
+            geometry: {
+              type: 'Polygon',
+              coordinates: mapPoints.length >= 3 ? [mapPoints.map(p => [p[1], p[0]])] : [[]]
+            }
+          }
+        });
+
+        mapInstance.addLayer({
+          id: 'bbox-polygon-fill',
+          type: 'fill',
+          source: 'bbox-polygon',
+          paint: {
+            'fill-color': formData.color || '#ff8c00',
+            'fill-opacity': 0.3
+          }
+        });
+
+        mapInstance.addLayer({
+          id: 'bbox-polygon-outline',
+          type: 'line',
+          source: 'bbox-polygon',
+          paint: {
+            'line-color': formData.color || '#ff8c00',
+            'line-width': 2
+          }
+        });
+
+        setMap(mapInstance);
+      });
+
+      // Add click handler to add new points
+      mapInstance.on('click', (e: any) => {
+        setMapPoints(prev => [...prev, [e.lngLat.lat, e.lngLat.lng]]);
+      });
+    });
+
+    return () => {
+      if (mapInstance) {
+        mapInstance.remove();
+      }
+    };
+  }, []);
+
+  // Update markers when points change
+  useEffect(() => {
+    if (!map || !mapLib) return;
+
+    // Clear all existing markers
+    markers.forEach(marker => marker.remove());
+    
+    // Create new markers for all points
+    const newMarkers = mapPoints.map((point, idx) => {
+      const marker = new mapLib.Marker({ 
+        draggable: true, 
+        color: formData.color || '#ff8c00' 
+      })
+        .setLngLat([point[1], point[0]])
+        .addTo(map);
+
+      marker.on('dragend', () => {
+        const lngLat = marker.getLngLat();
+        setMapPoints(prev => {
+          const updated = [...prev];
+          updated[idx] = [lngLat.lat, lngLat.lng];
+          return updated;
+        });
+      });
+
+      return marker;
+    });
+
+    setMarkers(newMarkers);
+  }, [mapPoints.length, map, mapLib]);
+
+  // Update marker colors when color changes
+  useEffect(() => {
+    if (!map || !mapLib || markers.length === 0) return;
+
+    markers.forEach((marker, idx) => {
+      const element = marker.getElement();
+      if (element) {
+        // Update marker color by removing old and creating new with correct color
+        const point = mapPoints[idx];
+        if (point) {
+          marker.remove();
+          const newMarker = new mapLib.Marker({ 
+            draggable: true, 
+            color: formData.color || '#ff8c00' 
+          })
+            .setLngLat([point[1], point[0]])
+            .addTo(map);
+
+          newMarker.on('dragend', () => {
+            const lngLat = newMarker.getLngLat();
+            setMapPoints(prev => {
+              const updated = [...prev];
+              updated[idx] = [lngLat.lat, lngLat.lng];
+              return updated;
+            });
+          });
+
+          setMarkers(prev => {
+            const updated = [...prev];
+            updated[idx] = newMarker;
+            return updated;
+          });
+        }
+      }
+    });
+
+    // Update polygon colors
+    if (map.getLayer('bbox-polygon-fill')) {
+      map.setPaintProperty('bbox-polygon-fill', 'fill-color', formData.color);
+    }
+    if (map.getLayer('bbox-polygon-outline')) {
+      map.setPaintProperty('bbox-polygon-outline', 'line-color', formData.color);
+    }
+  }, [formData.color]);
+
+  // Update polygon when points change
+  useEffect(() => {
+    if (!map) return;
+    
+    const source = map.getSource('bbox-polygon');
+    if (source) {
+      source.setData({
+        type: 'Feature',
+        properties: {},
+        geometry: {
+          type: 'Polygon',
+          coordinates: mapPoints.length >= 3 ? [mapPoints.map(p => [p[1], p[0]])] : [[]]
+        }
+      });
+    }
+  }, [mapPoints, map]);
+
+  const handleChange = (key: string, value: any) => {
+    setFormData({ ...formData, [key]: value });
+  };
+
+  const handleRemovePoint = (index: number) => {
+    setMapPoints(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleSubmit = () => {
+    if (!formData.name) {
+      toast.error('Name is required');
+      return;
+    }
+    if (mapPoints.length < 3) {
+      toast.error('At least 3 points are required');
+      return;
+    }
+
+    // Convert points to GeoJSON format (lng, lat)
+    const coordinates = [mapPoints.map(p => [p[1], p[0]])];
+    
+    onSubmit({
+      ...formData,
+      coordinates
+    });
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label>Name *</Label>
+          <Input value={formData.name} onChange={e => handleChange('name', e.target.value)} />
+        </div>
+        <div>
+          <Label>Color</Label>
+          <div className="flex gap-2">
+            <Input type="color" value={formData.color} onChange={e => handleChange('color', e.target.value)} className="w-20" />
+            <Input value={formData.color} onChange={e => handleChange('color', e.target.value)} />
+          </div>
+        </div>
+      </div>
+      
+      <div>
+        <Label>Description</Label>
+        <Textarea value={formData.description || ''} onChange={e => handleChange('description', e.target.value)} />
+      </div>
+
+      <div className="flex items-center gap-2">
+        <Checkbox checked={formData.active} onCheckedChange={c => handleChange('active', c)} />
+        <Label>Active</Label>
+      </div>
+
+      <div>
+        <Label>Map - Click to add points</Label>
+        <div id="bbox-map" className="w-full h-[400px] rounded border mt-2"></div>
+        <p className="text-sm text-muted-foreground mt-2">Click on the map to add points. Drag markers to adjust positions.</p>
+      </div>
+
+      <div>
+        <Label>Points ({mapPoints.length})</Label>
+        <div className="max-h-[200px] overflow-y-auto border rounded p-2 mt-2">
+          {mapPoints.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No points added yet. Click on the map to add points.</p>
+          ) : (
+            <div className="space-y-1">
+              {mapPoints.map((point, idx) => (
+                <div key={idx} className="flex items-center justify-between text-sm">
+                  <span>Point {idx + 1}: {point[0].toFixed(6)}, {point[1].toFixed(6)}</span>
+                  <Button 
+                    size="icon" 
+                    variant="ghost" 
+                    className="h-6 w-6 text-red-500" 
+                    onClick={() => handleRemovePoint(idx)}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <Button onClick={handleSubmit} className="w-full">Save Bounding Box</Button>
+    </div>
+  );
+}
+

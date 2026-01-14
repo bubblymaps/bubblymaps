@@ -314,3 +314,57 @@ export async function getLogs(page = 1, pageSize = 20, search = '') {
     }
   };
 }
+
+// Bounding Boxes
+export async function getBoundingBoxes() {
+  await checkMod();
+  return db.boundingBox.findMany({ 
+    orderBy: { createdAt: 'desc' } 
+  });
+}
+
+export async function createBoundingBox(data: any) {
+  const user = await checkMod();
+  const result = await db.boundingBox.create({ 
+    data: {
+      name: data.name,
+      description: data.description,
+      color: data.color || '#ff8c00',
+      coordinates: data.coordinates,
+      properties: data.properties || {},
+      active: data.active !== false
+    }
+  });
+  await logToDiscord('Create Bounding Box', `Created bounding box ${result.id} (${result.name})`, user);
+  revalidatePath('/mod');
+  return result;
+}
+
+export async function updateBoundingBox(id: number, data: any) {
+  const user = await checkMod();
+  const oldData = await db.boundingBox.findUnique({ where: { id } });
+  
+  const updateData: any = {};
+  if (data.name !== undefined) updateData.name = data.name;
+  if (data.description !== undefined) updateData.description = data.description;
+  if (data.color !== undefined) updateData.color = data.color;
+  if (data.coordinates !== undefined) updateData.coordinates = data.coordinates;
+  if (data.properties !== undefined) updateData.properties = data.properties;
+  if (data.active !== undefined) updateData.active = data.active;
+  
+  const result = await db.boundingBox.update({ where: { id }, data: updateData });
+  
+  const diff = getDiff(oldData, result);
+  await logToDiscord('Update Bounding Box', `Updated bounding box ${id} (${result.name})\nChanges:\n${diff}`, user);
+  
+  revalidatePath('/mod');
+  return result;
+}
+
+export async function deleteBoundingBox(id: number) {
+  const user = await checkMod();
+  const result = await db.boundingBox.delete({ where: { id } });
+  await logToDiscord('Delete Bounding Box', `Deleted bounding box ${id} (${result.name})`, user);
+  revalidatePath('/mod');
+  return result;
+}

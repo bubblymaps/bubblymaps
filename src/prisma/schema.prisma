@@ -140,3 +140,17 @@ model VerificationToken {
 
   @@unique([identifier, token])
 }
+
+model BoundingBox {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  color       String   @default("#ff8c00")
+  coordinates Json     // GeoJSON Polygon coordinates
+  properties  Json?    // Additional properties like "unreliable", "priority", etc.
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([active])
+}
