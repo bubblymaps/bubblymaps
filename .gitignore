@@ -1,1 +1,5 @@
 .idea
+.next
+node_modules
+generated
+.env
