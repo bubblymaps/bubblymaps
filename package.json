@@ -80,6 +80,19 @@
     "vaul": "^1.1.2",
     "zod": "^3.25.76"
   },
+  "overrides": {
+    "swagger-ui-react": {
+      "react-copy-to-clipboard": {
+        "react": "$react"
+      },
+      "react-debounce-input": {
+        "react": "$react"
+      },
+      "react-inspector": {
+        "react": "$react"
+      }
+    }
+  },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
     "@tailwindcss/postcss": "^4.0.15",
