@@ -10,7 +10,7 @@ import { ThemeProvider } from "next-themes"
 export const metadata: Metadata = {
   title: "Bubbly Maps - Find water fountains near you",
   description: "The open source water fountain locator. Find bubblers near you. Open Code, Open Data.",
-  // icons: [{ rel: "icon", url: "/favicon.ico" }],
+  icons: [{ rel: "icon", url: "/favicon.ico" }],
 };
 
 export default function RootLayout({

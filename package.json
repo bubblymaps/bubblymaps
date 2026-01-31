@@ -1,9 +1,9 @@
 {
   "name": "bubblymaps",
-  "version": "5.0.2",
+  "version": "5.0.3",
   "private": true,
   "type": "module",
-  "author": "linuskang",
+  "author": "github/linuskang",
   "license": "CC BY-NC 4.0",
   "scripts": {
     "build": "next build",
@@ -21,7 +21,7 @@
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.7.2",
-    "@aws-sdk/client-s3": "^3.956.0",
+    "@aws-sdk/client-s3": "^3.893.0",
     "@hookform/resolvers": "^5.2.2",
     "@prisma/client": "^6.6.0",
     "@radix-ui/react-accordion": "^1.2.12",
@@ -75,6 +75,7 @@
     "resend": "^6.6.0",
     "sharp": "^0.34.5",
     "sonner": "^2.0.7",
+    "swagger-ui-react": "^5.31.0",
     "tailwind-merge": "^3.4.0",
     "vaul": "^1.1.2",
     "zod": "^3.25.76"
@@ -86,6 +87,7 @@
     "@types/node": "^20.14.10",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "@types/swagger-ui-react": "^5.18.0",
     "eslint": "^9.23.0",
     "eslint-config-next": "^15.2.3",
     "postcss": "^8.5.3",

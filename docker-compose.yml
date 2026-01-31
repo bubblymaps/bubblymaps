@@ -28,7 +28,7 @@ services:
       # LOGGING
       - DISCORD_WEBHOOK_URL=your_discord_webhook_url
       # DEBUG
-      - APP_VERSION=v5.0.2
+      - APP_VERSION=v5.0.3
       - API_VERSION=v6
     depends_on:
       - postgres

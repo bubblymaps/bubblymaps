@@ -1,0 +1,128 @@
+.container {
+  padding: 1.5rem;
+  display: flex;
+  justify-content: center;
+}
+
+.viewer {
+  width: 100%;
+  max-width: 1100px;
+  background: var(--color-card);
+  color: #ffffff;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 10px 30px rgba(2,6,23,0.08);
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+}
+
+:global(.swagger-ui) {
+  background: transparent;
+  color: inherit;
+  font-family: var(--font-sans);
+}
+
+:global(.swagger-ui .topbar) {
+  background: linear-gradient(90deg, var(--color-primary), var(--color-secondary));
+  color: var(--color-primary-foreground);
+  box-shadow: none;
+  border-bottom: 1px solid var(--color-border);
+}
+
+:global(.swagger-ui .info) {
+  background: transparent;
+  color: inherit;
+  padding: 1rem 0;
+}
+
+:global(.swagger-ui .opblock) {
+  background: var(--color-popover);
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  margin: 0 0 12px 0;
+  overflow: hidden;
+}
+
+:global(.swagger-ui .opblock .opblock-summary) {
+  padding: 12px 16px;
+}
+
+:global(.swagger-ui .opblock .opblock-body) {
+  background: transparent;
+}
+
+:global(.swagger-ui .parameters) {
+  background: transparent;
+}
+
+/* Improve contrast for text, method badges and interactive controls */
+:global(.swagger-ui .info h1), :global(.swagger-ui .info .title) {
+  color: var(--color-foreground);
+  font-weight: 700;
+}
+
+:global(.swagger-ui .opblock .opblock-summary .opblock-summary-method) {
+  color: #fff;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+}
+
+:global(.swagger-ui .opblock-get .opblock-summary-method) { background: #16a34a; }
+:global(.swagger-ui .opblock-post .opblock-summary-method) { background: #2563eb; }
+:global(.swagger-ui .opblock-put .opblock-summary-method) { background: #f97316; }
+:global(.swagger-ui .opblock-delete .opblock-summary-method) { background: #dc2626; }
+:global(.swagger-ui .opblock-patch .opblock-summary-method) { background: #7c3aed; }
+:global(.swagger-ui .opblock-head .opblock-summary-method) { background: #475569; }
+
+:global(.swagger-ui .opblock .opblock-summary .opblock-summary-path) {
+  color: var(--color-foreground);
+  font-weight: 600;
+}
+
+:global(.swagger-ui .parameter__name), :global(.swagger-ui .parameter__type), :global(.swagger-ui .parameter__in) {
+  color: var(--color-foreground);
+}
+
+:global(.swagger-ui .opblock .opblock-body .try-out), :global(.swagger-ui .btn) {
+  background: var(--color-primary);
+  color: var(--color-primary-foreground);
+  border: 1px solid var(--color-border);
+}
+
+:global(.swagger-ui .opblock .opblock-summary-description) {
+  color: var(--color-muted-foreground);
+}
+
+:global(.swagger-ui .model-box), :global(.swagger-ui .responses-wrapper), :global(.swagger-ui .response-col_description__) {
+  background: transparent;
+  color: var(--color-foreground);
+}
+
+/* Header improvements: larger, bolder, more contrast */
+:global(.swagger-ui h1), :global(.swagger-ui h2), :global(.swagger-ui h3), :global(.swagger-ui h4) {
+  color: var(--color-foreground);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+:global(.swagger-ui .info h1) {
+  font-size: 1.375rem;
+}
+
+:global(.swagger-ui .opblock .opblock-summary) {
+  border-bottom: 1px solid var(--color-border);
+}
+
+:global(.swagger-ui .opblock .opblock-summary .opblock-summary-path) {
+  font-size: 1rem;
+}
+
+:global(.swagger-ui .responses h4), :global(.swagger-ui .response .response-col_description__ h4) {
+  color: var(--color-foreground);
+  font-weight: 700;
+}
+
+:global(.swagger-ui .scheme-container), :global(.swagger-ui .auth-wrapper) {
+  color: var(--color-foreground);
+}
