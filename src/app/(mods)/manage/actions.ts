@@ -2,8 +2,9 @@
 
 import { db } from '@/server/db';
 import { auth } from '@/server/auth';
-import { env } from '@/env';
 import { revalidatePath } from 'next/cache';
+
+import { logToDiscord } from '@/server/logging/discord';
 
 async function checkMod() {
   const session = await auth();
@@ -11,30 +12,6 @@ async function checkMod() {
     throw new Error('Unauthorized');
   }
   return session.user;
-}
-
-async function logToDiscord(action: string, details: string, user: any) {
-  if (!env.DISCORD_WEBHOOK_URL) return;
-
-  try {
-    await fetch(env.DISCORD_WEBHOOK_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        embeds: [{
-          title: `Mod Action: ${action}`,
-          description: details,
-          color: 0x3b82f6,
-          fields: [
-            { name: 'Moderator', value: `${user.name || user.email} (${user.email})`, inline: true },
-            { name: 'Time', value: new Date().toISOString(), inline: true },
-          ],
-        }],
-      }),
-    });
-  } catch (e) {
-    console.error('Failed to log to Discord', e);
-  }
 }
 
 function getDiff(oldData: any, newData: any) {
