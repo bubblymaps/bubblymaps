@@ -16,6 +16,31 @@ export default function AddWaypointPage() {
   const { theme } = useTheme()
   const { data: session, status } = useSession()
 
+  // Ensure only safe image URLs (http/https with common image extensions) are used.
+  const sanitizeImageUrl = (value: string): string | null => {
+    try {
+      const url = new URL(value)
+      if (url.protocol !== "http:" && url.protocol !== "https:") {
+        return null
+      }
+      const lowerPath = url.pathname.toLowerCase()
+      if (
+        !(
+          lowerPath.endsWith(".jpg") ||
+          lowerPath.endsWith(".jpeg") ||
+          lowerPath.endsWith(".png") ||
+          lowerPath.endsWith(".gif") ||
+          lowerPath.endsWith(".webp")
+        )
+      ) {
+        return null
+      }
+      return url.toString()
+    } catch {
+      return null
+    }
+  }
+
   const [step, setStep] = useState(1)
 
   const [name, setName] = useState("")
@@ -339,14 +364,15 @@ export default function AddWaypointPage() {
                         value={imageUrl} 
                         onChange={(e) => {
                           const val = e.target.value
+                          setImageUrl(val)
                           if (val === "") {
-                            setImageUrl(val)
                             setImageUrlError(null)
-                          } else if (isValidImageUrl(val)) {
-                            setImageUrl(val)
+                            return
+                          }
+                          const sanitized = sanitizeImageUrl(val)
+                          if (sanitized && isValidImageUrl(val)) {
                             setImageUrlError(null)
                           } else {
-                            setImageUrl(val)
                             setImageUrlError("Please enter a valid image URL (http/https, jpg/png/gif/webp).")
                           }
                         }} 
@@ -360,11 +386,11 @@ export default function AddWaypointPage() {
                       <div className="text-xs text-muted-foreground mt-1">Optional: Direct link to an image of the bubbler</div>
                     </label>
 
-                    {imageUrl && (
+                    {sanitizeImageUrl(imageUrl || "") && (
                       <div className="mt-2">
                         <div className="text-xs text-muted-foreground mb-1">Preview:</div>
                         <img 
-                          src={imageUrl} 
+                          src={sanitizeImageUrl(imageUrl || "") as string} 
                           alt="Preview" 
                           className="w-full max-w-sm h-48 object-cover rounded-lg border"
                           onError={(e) => {
