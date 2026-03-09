@@ -52,6 +52,28 @@ export default function AddWaypointPage() {
   const [imageUrlError, setImageUrlError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
+  const getSafeImageUrl = (url: string): string | null => {
+    if (!url) {
+      return null
+    }
+
+    // Allow common relative URL patterns
+    if (url.startsWith("/") || url.startsWith("./") || url.startsWith("../")) {
+      return url
+    }
+
+    try {
+      const parsed = new URL(url)
+      if (parsed.protocol === "http:" || parsed.protocol === "https:") {
+        return parsed.toString()
+      }
+    } catch {
+      // If URL parsing fails, treat as unsafe
+    }
+
+    return null
+  }
+
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [agreeToTerms, setAgreeToTerms] = useState(false)
 
@@ -482,18 +504,21 @@ export default function AddWaypointPage() {
                   </div>
 
                   {/* Image Preview */}
-                  {imageUrl && isValidImageUrl(imageUrl) && (
-                    <div className="mb-4">
-                      <img 
-                        src={imageUrl} 
-                        alt={name}
-                        className="w-full max-h-64 object-cover rounded-lg border"
-                        onError={(e) => {
-                          e.currentTarget.style.display = 'none'
-                        }}
-                      />
-                    </div>
-                  )}
+                  {(() => {
+                    const safeImageUrl = getSafeImageUrl(imageUrl)
+                    return safeImageUrl && isValidImageUrl(imageUrl) ? (
+                      <div className="mb-4">
+                        <img 
+                          src={safeImageUrl} 
+                          alt={name}
+                          className="w-full max-h-64 object-cover rounded-lg border"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none'
+                          }}
+                        />
+                      </div>
+                    ) : null
+                  })()}
 
                   {/* Details Grid */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
