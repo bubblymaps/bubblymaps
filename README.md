@@ -1,6 +1,6 @@
 # Bubbly Maps
 
-[![Version](https://img.shields.io/github/v/tag/bubblymaps/bubblymaps?label=version&color=blue)](https://github.com/bubblymaps/bubblymaps/releases)
+[![Version](https://img.shields.io/github/v/tag/bubblymaps/bubblymaps?label=version&color=blue)](https://github.com/kangsoftware/bubblymaps/releases)
 [![Build](https://img.shields.io/github/actions/workflow/status/bubblymaps/bubblymaps/ci.yml?color=green)](https://github.com/bubblymaps/bubblymaps/actions)
 [![License: CC BY-NC 4.0](https://img.shields.io/badge/License-CC%20BY--NC%204.0-lightgrey)](https://github.com/bubblymaps/bubblymaps/blob/main/LICENSE)
 [![Issues](https://img.shields.io/github/issues/bubblymaps/bubblymaps?color=red)](https://github.com/bubblymaps/bubblymaps/issues)
